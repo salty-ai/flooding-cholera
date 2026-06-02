@@ -42,3 +42,7 @@ sentry-sdk[fastapi]==1.40.0
 # Testing (development only)
 # pytest>=7.0.0,<8.0.0
 # pytest-asyncio==0.23.4
+
+# AI Agentic Surveillance dependencies
+google-antigravity>=0.1.0
+litellm>=1.20.0
