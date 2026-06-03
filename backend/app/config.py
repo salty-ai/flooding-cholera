@@ -43,6 +43,13 @@ class Settings(BaseSettings):
     sentry_environment: str = "development"
     sentry_traces_sample_rate: float = 0.1
 
+    # AI Provider API Keys (optional — copilot falls back to mock mode if absent)
+    gemini_api_key: Optional[str] = None
+    anthropic_api_key: Optional[str] = None
+    deepseek_api_key: Optional[str] = None
+    openrouter_api_key: Optional[str] = None
+    nvidia_nim_api_key: Optional[str] = None
+
     # Cross River State bounding box (approximate)
     crs_bbox: dict = {
         "min_lon": 7.5,
@@ -58,6 +65,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+        extra = "ignore"
 
 
 @lru_cache()
