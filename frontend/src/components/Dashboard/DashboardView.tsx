@@ -1,5 +1,3 @@
-import { useDashboard } from '../../hooks/useApi';
-import { useSatelliteFeedLogic, useChartDataLogic, useRiskChartLogic } from '../../hooks/useDashboardLogic';
 import { useDashboard, useRiskScores, useSatelliteThumbnail } from '../../hooks/useApi';
 import { useSatelliteFeedLogic, useChartDataLogic, useRiskChartLogic } from '../../hooks/useDashboardLogic';
 import ChoroplethMap from '../Map/ChoroplethMap';
@@ -189,7 +187,7 @@ function SatelliteFeed() {
   );
 }
 
-function CaseRainfallChart() {
+export function CaseRainfallChart() {
   const { chartData } = useChartDataLogic();
 
   return (
