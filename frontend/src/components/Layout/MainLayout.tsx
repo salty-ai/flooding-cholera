@@ -1,8 +1,11 @@
 import { useAuthStore } from '../../store/authStore';
 import { useAlerts } from '../../hooks/useApi';
 import { useAppStore } from '../../store/appStore';
+import { useAgentStore } from '../../store/agentStore';
 import LGADetailPanel from '../LGADetail/LGADetailPanel';
 import LGASearchBar from '../Search/LGASearchBar';
+import AgentSidebar from '../Agent/AgentSidebar';
+import SystemConsole from '../Agent/SystemConsole';
 import type { TabId } from '../../App';
 
 interface MainLayoutProps {
@@ -22,6 +25,7 @@ export default function MainLayout({ activeTab, onTabChange, children }: MainLay
   const { user, logout } = useAuthStore();
   const { data: alerts } = useAlerts();
   const { selectedLGAId } = useAppStore();
+  const { sidebarOpen, setSidebarOpen, consoleOpen } = useAgentStore();
 
   const criticalAlerts = alerts?.filter(a => a.severity === 'critical').length || 0;
 
@@ -36,7 +40,7 @@ export default function MainLayout({ activeTab, onTabChange, children }: MainLay
 
   return (
     <div className="flex h-screen w-full bg-[#f6f7f8] font-display overflow-hidden">
-      {/* Side Navigation */}
+      {/* ── Left Navigation ── */}
       <aside className="flex w-64 flex-col border-r border-[#e6e8eb] bg-white flex-shrink-0 z-20">
         <div className="flex h-full flex-col justify-between p-4">
           <div className="flex flex-col gap-6">
@@ -83,6 +87,22 @@ export default function MainLayout({ activeTab, onTabChange, children }: MainLay
 
           {/* Bottom Links */}
           <div className="flex flex-col gap-2 border-t border-[#e6e8eb] pt-4">
+            {/* AI Copilot Toggle */}
+            <button
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors w-full text-left ${
+                sidebarOpen
+                  ? 'bg-primary/10 text-primary'
+                  : 'text-[#637588] hover:bg-[#f0f2f5]'
+              }`}
+            >
+              <span className={`material-symbols-outlined ${sidebarOpen ? 'filled' : ''}`} style={{ fontSize: '22px' }}>smart_toy</span>
+              <span className="text-sm font-medium">AI Copilot</span>
+              {sidebarOpen && (
+                <span className="ml-auto size-2 rounded-full bg-emerald-400 animate-pulse" />
+              )}
+            </button>
+
             <button
               onClick={logout}
               className="flex items-center gap-3 px-3 py-2 rounded-lg text-[#637588] hover:bg-[#f0f2f5] transition-colors w-full text-left"
@@ -94,8 +114,8 @@ export default function MainLayout({ activeTab, onTabChange, children }: MainLay
         </div>
       </aside>
 
-      {/* Main Content Area */}
-      <main className="flex flex-1 flex-col overflow-hidden relative">
+      {/* ── Center: Header + Content + Console ── */}
+      <main className="flex flex-1 flex-col overflow-hidden relative min-w-0">
         {/* Top Header */}
         <header className="flex h-16 items-center justify-between border-b border-[#e6e8eb] bg-white px-6 flex-shrink-0 z-10">
           <div className="flex items-center gap-3">
@@ -111,6 +131,19 @@ export default function MainLayout({ activeTab, onTabChange, children }: MainLay
               <LGASearchBar placeholder="Search LGA for report..." />
             </div>
             <div className="h-6 w-px bg-[#e6e8eb] mx-1 hidden md:block"></div>
+
+            {/* Console toggle */}
+            <button
+              onClick={() => useAgentStore.getState().setConsoleOpen(!consoleOpen)}
+              className={`flex items-center justify-center size-9 rounded-lg transition-colors relative ${
+                consoleOpen
+                  ? 'bg-[#0f172a] text-emerald-400'
+                  : 'hover:bg-[#f0f2f5] text-[#637588]'
+              }`}
+              title={consoleOpen ? 'Hide console' : 'Show console'}
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '22px' }}>terminal</span>
+            </button>
 
             {/* Notifications */}
             <button className="flex items-center justify-center size-9 rounded-lg hover:bg-[#f0f2f5] text-[#637588] transition-colors relative">
@@ -133,14 +166,20 @@ export default function MainLayout({ activeTab, onTabChange, children }: MainLay
             {children}
           </div>
         </div>
+
+        {/* System Console (bottom) */}
+        <SystemConsole />
       </main>
 
-      {/* LGA Detail Panel - Right Sidebar */}
+      {/* ── Right: LGA Detail Panel (contextual) ── */}
       {selectedLGAId && (
         <aside className="w-96 flex-shrink-0 overflow-hidden border-l border-[#e6e8eb] bg-white z-20">
           <LGADetailPanel />
         </aside>
       )}
+
+      {/* ── Right: AI Copilot Sidebar ── */}
+      <AgentSidebar />
     </div>
   );
 }

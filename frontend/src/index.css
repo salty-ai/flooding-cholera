@@ -1,5 +1,6 @@
 /* Font imports must come first */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap');
 @import 'leaflet/dist/leaflet.css';
 
@@ -69,4 +70,41 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     background-color: #94a3b8;
   }
+
+  /* Dark console scrollbar */
+  .console-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .console-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .console-scrollbar::-webkit-scrollbar-thumb {
+    background-color: rgba(255, 255, 255, 0.15);
+    border-radius: 3px;
+  }
+  .console-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(255, 255, 255, 0.25);
+  }
+}
+
+/* Glassmorphism panel */
+.glass-panel {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+/* Typing cursor animation */
+@keyframes blink-cursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.animate-cursor {
+  animation: blink-cursor 1s step-end infinite;
+}
+
+/* Smooth panel transitions */
+.panel-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }

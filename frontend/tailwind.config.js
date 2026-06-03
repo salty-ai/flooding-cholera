@@ -24,6 +24,7 @@ export default {
       fontFamily: {
         display: ["Inter", "sans-serif"],
         sans: ["Inter", "sans-serif"],
+        mono: ["'JetBrains Mono'", "'Fira Code'", "monospace"],
       },
     },
   },
