@@ -19,34 +19,52 @@ class DataImporter:
         self._build_lga_cache()
 
     def _build_lga_cache(self):
-        """Build cache of LGA name to ID mapping."""
+        """Build cache of LGA name -> ID, plus (name, state) -> ID."""
+        self._lga_cache: Dict[str, int] = {}
+        self._state_cache: Dict[str, int] = {}
         lgas = self.db.query(LGA).all()
         for lga in lgas:
-            # Store both exact and lowercase for matching
-            self._lga_cache[lga.name.lower()] = lga.id
-            self._lga_cache[lga.name.lower().replace(" ", "")] = lga.id
+            key = lga.name.lower()
+            self._lga_cache.setdefault(key, lga.id)
+            self._lga_cache.setdefault(key.replace(" ", ""), lga.id)
+            if lga.state:
+                self._state_cache[f"{key}__{lga.state.lower()}"] = lga.id
 
-    def _find_lga_id(self, lga_name: str) -> Optional[int]:
-        """Find LGA ID from name with fuzzy matching."""
+    def _find_lga_id(self, lga_name: str, state: str = None) -> Optional[int]:
         if not lga_name:
             return None
-
         name_lower = str(lga_name).lower().strip()
+
+        # State-disambiguated exact match first
+        state_cache = getattr(self, "_state_cache", {}) or {}
+        if state:
+            skey = f"{name_lower}__{str(state).lower().strip()}"
+            if skey in state_cache:
+                return state_cache[skey]
+            skey_nospace = f"{name_lower.replace(' ', '')}__{str(state).lower().strip()}"
+            if skey_nospace in state_cache:
+                return state_cache[skey_nospace]
+            # Fallback: some caches store state keys inside _lga_cache
+            if skey in self._lga_cache:
+                return self._lga_cache[skey]
+            if skey_nospace in self._lga_cache:
+                return self._lga_cache[skey_nospace]
 
         # Direct match
         if name_lower in self._lga_cache:
             return self._lga_cache[name_lower]
-
-        # Try without spaces
         name_no_spaces = name_lower.replace(" ", "")
         if name_no_spaces in self._lga_cache:
             return self._lga_cache[name_no_spaces]
 
-        # Try partial match
+        # pcode match
+        pc = self._lga_cache.get(name_lower.upper())  # pcodes stored uppercased
+        if pc is not None:
+            return pc
+        # Partial/substring match
         for cached_name, lga_id in self._lga_cache.items():
             if name_lower in cached_name or cached_name in name_lower:
                 return lga_id
-
         return None
 
     def _parse_date(self, value: Any) -> Optional[date]:
