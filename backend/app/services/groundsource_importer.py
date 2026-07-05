@@ -3,12 +3,11 @@ import logging
 import math
 import os
 from datetime import date, datetime
-from typing import Optional, Dict, Any
+from typing import Optional, Dict
 
 import pyarrow.parquet as pq
 from shapely import wkb
 from geoalchemy2.shape import from_shape
-from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -23,7 +22,7 @@ def compute_flood_event_score_inputs(area_km2: Optional[float], days_since_start
     if area_km2 is None or area_km2 <= 0:
         area_w = 0.0
     else:
-        area_w = max(0.0, min(1.0, area_km2 / 250.0))
+        area_w = max(0.0, min(1.0, area_km2 / 500.0))
     recency_w = math.exp(-max(0.0, days_since_start) / 14.0)
     return recency_w * area_w
 
@@ -66,7 +65,12 @@ def _parse_date(val) -> Optional[date]:
             return datetime.strptime(s, fmt).date()
         except ValueError:
             continue
-    return None
+    # ISO datetime fallback (e.g. "2024-06-01T00:00:00Z")
+    iso = s[:-1] if s.endswith("Z") else s
+    try:
+        return datetime.fromisoformat(iso).date()
+    except ValueError:
+        return None
 
 
 def import_groundsource(
@@ -82,7 +86,6 @@ def import_groundsource(
 
     # Load LGA geometries once for in-memory spatial join
     lgas = db.query(LGA.id, LGA.geometry, LGA.name).all()
-    from shapely.geometry import shape
     from geoalchemy2.shape import to_shape
     lga_shapes = []
     for lga_id, geom, _name in lgas:
@@ -133,7 +136,11 @@ def import_groundsource(
                     break
             if lga_id is None:
                 no_lga += 1
-            duration = (end - start).days + 1 if end and start else None
+            else:
+                imported += 1
+            duration = None
+            if end and start and end >= start:
+                duration = (end - start).days + 1
             fe = FloodEvent(
                 uuid=uuid,
                 lga_id=lga_id,
@@ -145,8 +152,11 @@ def import_groundsource(
                 data_source="groundsource",
             )
             db.add(fe)
-            imported += 1
-        db.commit()
+        try:
+            db.commit()
+        except Exception:
+            db.rollback()
+            raise
         logger.info(f"Groundsource batch: imported={imported} skipped={skipped} no_lga={no_lga}")
 
     logger.info(f"Groundsource import complete: imported={imported} skipped={skipped} no_lga={no_lga}")
