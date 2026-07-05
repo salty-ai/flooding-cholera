@@ -7,7 +7,8 @@ from typing import Optional, Dict
 
 import pyarrow.parquet as pq
 from shapely import wkb
-from geoalchemy2.shape import from_shape
+from shapely.strtree import STRtree
+from geoalchemy2.shape import from_shape, to_shape
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -84,9 +85,8 @@ def import_groundsource(
     min_lon, max_lon = bbox["min_lon"], bbox["max_lon"]
     min_lat, max_lat = bbox["min_lat"], bbox["max_lat"]
 
-    # Load LGA geometries once for in-memory spatial join
+    # Load LGA geometries once for in-memory spatial join (STRtree for O(log n) lookup)
     lgas = db.query(LGA.id, LGA.geometry, LGA.name).all()
-    from geoalchemy2.shape import to_shape
     lga_shapes = []
     for lga_id, geom, _name in lgas:
         if geom is None:
@@ -95,9 +95,26 @@ def import_groundsource(
             lga_shapes.append((lga_id, to_shape(geom)))
         except Exception:
             continue
+    lga_geom_list = [shape for _lid, shape in lga_shapes]
+    lga_id_list = [lid for lid, _shape in lga_shapes]
+    strtree = STRtree(lga_geom_list) if lga_geom_list else None
+
+    def _resolve_lga(geom):
+        """Return the lga_id whose polygon intersects geom, or None."""
+        if strtree is None:
+            return None
+        for idx in strtree.query(geom):
+            lid = lga_id_list[int(idx)]
+            lshape = lga_geom_list[int(idx)]
+            if geom.intersects(lshape):
+                return lid
+        return None
 
     pf = pq.ParquetFile(parquet_path)
     imported = skipped = no_lga = 0
+    # Track UUIDs already seen/inserted/updated this run to avoid duplicates
+    # both across batches (re-queries) and within a single batch.
+    seen_in_batch: set = set()
 
     for batch in pf.iter_batches(batch_size=batch_size):
         df = batch.to_pandas()
@@ -108,7 +125,8 @@ def import_groundsource(
         )
         for _, row in df.iterrows():
             uuid = row["uuid"]
-            if uuid in existing_uuids:
+            # Finding 2: skip duplicate UUIDs within the batch / across this run.
+            if uuid in seen_in_batch:
                 skipped += 1
                 continue
             try:
@@ -129,29 +147,53 @@ def import_groundsource(
             if not start:
                 skipped += 1
                 continue
-            lga_id = None
-            for lid, lshape in lga_shapes:
-                if geom.intersects(lshape):
-                    lga_id = lid
-                    break
-            if lga_id is None:
-                no_lga += 1
-            else:
-                imported += 1
+            lga_id = _resolve_lga(geom)
             duration = None
             if end and start and end >= start:
                 duration = (end - start).days + 1
-            fe = FloodEvent(
-                uuid=uuid,
-                lga_id=lga_id,
-                geometry=from_shape(geom, srid=4326),
-                start_date=start,
-                end_date=end,
-                duration_days=duration,
-                area_km2=float(row["area_km2"]) if row.get("area_km2") is not None else None,
-                data_source="groundsource",
-            )
-            db.add(fe)
+            area_km2 = float(row["area_km2"]) if row.get("area_km2") is not None else None
+            shape_geom = from_shape(geom, srid=4326)
+            seen_in_batch.add(uuid)
+
+            if uuid in existing_uuids:
+                # Finding 1: true upsert — refresh existing row fields.
+                fe = db.query(FloodEvent).filter(FloodEvent.uuid == uuid).one_or_none()
+                if fe is None:
+                    # Raced out between the set query and now; treat as new.
+                    fe = FloodEvent(
+                        uuid=uuid,
+                        lga_id=lga_id,
+                        geometry=shape_geom,
+                        start_date=start,
+                        end_date=end,
+                        duration_days=duration,
+                        area_km2=area_km2,
+                        data_source="groundsource",
+                    )
+                    db.add(fe)
+                else:
+                    fe.lga_id = lga_id
+                    fe.geometry = shape_geom
+                    fe.start_date = start
+                    fe.end_date = end
+                    fe.duration_days = duration
+                    fe.area_km2 = area_km2
+                    fe.data_source = "groundsource"
+            else:
+                fe = FloodEvent(
+                    uuid=uuid,
+                    lga_id=lga_id,
+                    geometry=shape_geom,
+                    start_date=start,
+                    end_date=end,
+                    duration_days=duration,
+                    area_km2=area_km2,
+                    data_source="groundsource",
+                )
+                db.add(fe)
+            if lga_id is None:
+                no_lga += 1
+            imported += 1
         try:
             db.commit()
         except Exception:
