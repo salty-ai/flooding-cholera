@@ -14,6 +14,8 @@ class LGA(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), unique=True, nullable=False, index=True)
     code = Column(String(20), unique=True, nullable=False)
+    state = Column(String(100), nullable=True, index=True)
+    pcode = Column(String(20), nullable=True, unique=True)
     population = Column(Integer, nullable=True)
     area_sq_km = Column(Float, nullable=True)
     headquarters = Column(String(100), nullable=True)
