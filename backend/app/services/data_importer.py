@@ -27,6 +27,8 @@ class DataImporter:
             key = lga.name.lower()
             self._lga_cache.setdefault(key, lga.id)
             self._lga_cache.setdefault(key.replace(" ", ""), lga.id)
+            if lga.pcode:
+                self._lga_cache.setdefault(lga.pcode.upper(), lga.id)
             if lga.state:
                 self._state_cache[f"{key}__{lga.state.lower()}"] = lga.id
 
@@ -44,11 +46,6 @@ class DataImporter:
             skey_nospace = f"{name_lower.replace(' ', '')}__{str(state).lower().strip()}"
             if skey_nospace in state_cache:
                 return state_cache[skey_nospace]
-            # Fallback: some caches store state keys inside _lga_cache
-            if skey in self._lga_cache:
-                return self._lga_cache[skey]
-            if skey_nospace in self._lga_cache:
-                return self._lga_cache[skey_nospace]
 
         # Direct match
         if name_lower in self._lga_cache:
@@ -57,8 +54,8 @@ class DataImporter:
         if name_no_spaces in self._lga_cache:
             return self._lga_cache[name_no_spaces]
 
-        # pcode match
-        pc = self._lga_cache.get(name_lower.upper())  # pcodes stored uppercased
+        # pcode (uppercase) match
+        pc = self._lga_cache.get(name_lower.upper())
         if pc is not None:
             return pc
         # Partial/substring match
