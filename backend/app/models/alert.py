@@ -1,6 +1,6 @@
 """Alert model for surveillance system notifications."""
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, JSON
+from sqlalchemy import Column, Integer, String, Text, Float, DateTime, Boolean, ForeignKey, JSON
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -29,6 +29,10 @@ class Alert(Base):
     # Alert content
     title = Column(String(200), nullable=False)
     message = Column(Text, nullable=False)
+
+    # Rule tracking
+    rule_id = Column(Integer, ForeignKey("alert_rules.id"), nullable=True, index=True)
+    triggered_value = Column(Float, nullable=True)
 
     # Metadata
     triggered_by = Column(JSON, nullable=True)  # Conditions that triggered the alert
