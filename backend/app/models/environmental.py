@@ -81,10 +81,12 @@ class RiskScore(Base):
     ndwi = Column(Float, nullable=True)
     recent_cases = Column(Integer, nullable=True)
     recent_deaths = Column(Integer, nullable=True)
+    flood_event_score = Column(Float, nullable=True)
+    recent_flood_events = Column(Integer, nullable=True)
 
     # Calculation metadata
     calculated_at = Column(DateTime, default=datetime.utcnow)
-    algorithm_version = Column(String(20), default="1.0")
+    algorithm_version = Column(String(20), default="2.0")
     notes = Column(Text, nullable=True)
 
     # Relationships
