@@ -73,19 +73,30 @@ def scheduled_risk_calculation():
 
 
 def auto_seed_if_empty():
-    """Seed database with demo data if no LGAs exist."""
+    """Seed database with nationwide LGAs if empty."""
+    import os
     from app.models import LGA
+    from app.services.lga_loader import load_national_lgas
     db = SessionLocal()
     try:
         lga_count = db.query(LGA).count()
         if lga_count == 0:
-            logger.info("Database is empty, running auto-seed...")
-            from app.seed_database import seed_lgas, seed_demo_scenario, calculate_initial_risks, seed_demo_alerts
-            seed_lgas()
-            seed_demo_scenario()
-            calculate_initial_risks()
-            seed_demo_alerts()
-            logger.info("Auto-seed completed successfully")
+            logger.info("Database is empty, loading nationwide LGAs...")
+            geojson_path = os.path.join(
+                os.path.dirname(__file__), "..", "data", "boundaries",
+                "nigeria_lgas_774.geojson",
+            )
+            count = load_national_lgas(db, geojson_path)
+            logger.info(f"Loaded {count} nationwide LGAs")
+
+            if settings.seed_demo:
+                logger.info("SEED_DEMO=true — seeding synthetic scenario")
+                from app.seed_database import (
+                    seed_demo_scenario, calculate_initial_risks, seed_demo_alerts,
+                )
+                seed_demo_scenario()
+                calculate_initial_risks()
+                seed_demo_alerts()
         else:
             logger.info(f"Database already has {lga_count} LGAs, skipping seed")
     except Exception as e:

@@ -58,6 +58,14 @@ class Settings(BaseSettings):
         "max_lat": 7.0
     }
 
+    seed_demo: bool = False  # set SEED_DEMO=true to also seed synthetic scenario
+    nigeria_bbox: dict = {
+        "min_lon": 3.0,
+        "max_lon": 15.0,
+        "min_lat": 4.0,
+        "max_lat": 14.0,
+    }
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [origin.strip() for origin in self.cors_origins.split(",")]
