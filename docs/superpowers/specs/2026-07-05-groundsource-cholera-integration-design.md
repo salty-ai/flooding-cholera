@@ -10,6 +10,8 @@
 
 The NASRDA Cholera-Environment Correlation & Surveillance System is a GIS-enabled platform for Nigeria at LGA (and ward) level. Stack: FastAPI + SQLAlchemy + PostGIS (`geoalchemy2`) + Alembic backend; React + Vite + TS frontend with an AI workspace shell. Existing services include NASA GPM rainfall, Google Earth Engine satellite (NDWI/flood-extent/LST), a weighted `RiskCalculator`, a CSV/Excel `DataImporter`, and a `SurveillanceAgent` with multi-provider router.
 
+**Scope change (this iteration): nationwide Nigeria.** The current implementation is a Cross River State prototype (18 LGAs, `cross_river_lgas.geojson`, `crs_bbox` in config). The real cholera data is nationwide (766 LGAs, 37 states + FCT) and Groundsource is global, so the system is expanded to all 774 LGAs. This is a foundational change that precedes all other phases.
+
 The current "flood" signal is **satellite-derived** (NDWI + flood extent). There is no historical flood-**event** dataset, and the existing case data is synthetic/placeholder. This integration adds:
 
 1. **Google Groundsource** (2026) — 2,646,302 historical flood events across 175 countries, 2000–2026, extracted from news articles via Gemini. Distributed as a 667 MB Parquet file (CC BY 4.0) on Zenodo (`doi:10.5281/zenodo.18647054`). Schema: `uuid, area_km2, geometry (WKB, EPSG:4326), start_date, end_date`. This provides **reported flood events with spatial footprints and dates** — a complementary signal to satellite NDWI, ideal for the project's time-lag correlation goal.
@@ -17,6 +19,36 @@ The current "flood" signal is **satellite-derived** (NDWI + flood extent). There
 3. **Enhancements** — time-lag correlation analytics, rule-based alerts/early-warning, weekly/monthly PDF/CSV surveillance reports.
 
 **Architecture choice (approved): Approach A — PostGIS-native.** Filter Groundsource to Nigeria at import, store raw `flood_events` rows in PostGIS with geometry. Single source of truth; leverages existing PostGIS stack; keeps raw footprints for map rendering and future queries; additive schema. Nigeria-subset event volume (tens of thousands of rows) is easily manageable.
+
+---
+
+## 1A. Foundational Change: Nationwide LGA Migration
+
+Precedes all other phases. The system moves from an 18-LGA Cross River State prototype to all 774 Nigerian LGAs.
+
+### 1A.1 Boundary data
+
+- **Source:** HDX COD-AB Nigeria (`cod-ab-nga`), ADM2 GeoJSON — 774 LGAs, CC BY 4.0 (OCHA/OSGOF).
+- **Files saved to repo:** `backend/data/boundaries/nigeria_lgas_774.geojson` (ADM2, 774 features) and `backend/data/boundaries/nigeria_states.geojson` (ADM1).
+- **ADM2 properties used:** `adm2_name` (LGA name), `adm1_name` (state), `adm2_pcode` (e.g. `NG001001`), `area_sqkm`, `center_lat`, `center_lon`.
+
+### 1A.2 LGA model extension
+
+Add columns to `LGA`:
+- `state` (String(100), nullable, indexed) — `adm1_name`.
+- `pcode` (String(20), nullable, unique) — `adm2_pcode` (replaces the old `code` uniqueness for the national set; `code` kept for backward compat, populated from pcode).
+- Keep existing `geometry` (MULTIPOLYGON, SRID 4326), `centroid_lat/lon` (populated from `center_lat/lon`), `area_sq_km` (from `area_sqkm`), `population` (null — not in boundary file), vulnerability defaults.
+
+### 1A.3 Seed replacement
+
+Replace `seed_database.py` Cross River seed with a nationwide loader:
+1. Load `nigeria_lgas_774.geojson`; upsert all 774 LGAs (keyed on `pcode`) with geometry, state, centroid, area.
+2. `auto_seed_if_empty` in `main.py` calls the new loader. Demo scenario seeding (synthetic cases/env/risk) is gated behind a `SEED_DEMO` env flag (off by default) so production loads real data, not demo.
+3. Old `cross_river_lgas.geojson` and `crs_bbox` config retained but unused for the national seed; `crs_bbox` replaced by a `nigeria_bbox` (lat 4–14, lon 3–15) used by the Groundsource importer.
+
+### 1A.4 Name-matching
+
+Cholera-file LGA names (766) match boundary names (774) at 671 exact; the rest are formatting variants (hyphens vs spaces, minor spelling). The existing `DataImporter._find_lga_id` fuzzy matcher (lowercase, space-removal, substring) resolves these. The matcher is extended to also try matching by `pcode` and to disambiguate using the `State` column when an LGA name appears in multiple states.
 
 ---
 
@@ -227,6 +259,7 @@ Already present: `geoalchemy2`, `pandas`, `shapely`, `apscheduler`.
 ## 8. Migration & Rollout
 
 Alembic migration(s):
+0. Nationwide LGA migration: add `state`, `pcode` to `lgas`; populate 774 LGAs from `nigeria_lgas_774.geojson` (data migration).
 1. Create `flood_events` table (with GIST + composite indexes).
 2. Create `alert_rules` table.
 3. Add `flood_event_score`, `recent_flood_events` to `risk_scores`.
