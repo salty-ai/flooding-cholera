@@ -2,11 +2,13 @@
 from datetime import date, timedelta
 from typing import Optional, Dict, Any, List
 import logging
+import math
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
 from app.models import LGA, CaseReport, EnvironmentalData, RiskScore
 from app.models.environmental import RiskLevel
+from app.services.groundsource_importer import compute_flood_event_score_inputs
 
 logger = logging.getLogger(__name__)
 
@@ -20,11 +22,12 @@ class RiskCalculator:
     - Vulnerability factors (water/sanitation coverage)
     """
 
-    # Weight factors for risk calculation
-    W_FLOOD = 0.4       # Flood/water indicators
-    W_RAIN = 0.2        # Rainfall
-    W_CASES = 0.3       # Recent cholera cases
-    W_VULNERABILITY = 0.1  # Infrastructure vulnerability
+    # v2.0 weights (satellite flood + flood events split the old 0.4 flood budget)
+    W_FLOOD = 0.25
+    W_FLOOD_EVENT = 0.20
+    W_RAIN = 0.20
+    W_CASES = 0.25
+    W_VULNERABILITY = 0.10
 
     # Normalization parameters
     MAX_RAINFALL_MM = 200.0  # Max expected 7-day rainfall
@@ -146,6 +149,34 @@ class RiskCalculator:
         ).order_by(
             EnvironmentalData.observation_date.desc()
         ).first()
+
+    def calculate_flood_event_score(
+        self,
+        lga_id: int,
+        as_of_date: Optional[date] = None,
+        lookback_days: int = 30,
+    ) -> float:
+        """Groundsource event-based flood score in [0,1]."""
+        from app.models import FloodEvent
+        as_of = as_of_date or date.today()
+        start = as_of - timedelta(days=lookback_days)
+        events = (
+            self.db.query(FloodEvent)
+            .filter(
+                FloodEvent.lga_id == lga_id,
+                FloodEvent.start_date >= start,
+                FloodEvent.start_date <= as_of,
+            )
+            .order_by(FloodEvent.start_date.desc())
+            .all()
+        )
+        if not events:
+            return 0.0
+        total = 0.0
+        for e in events:
+            dt = (as_of - e.start_date).days
+            total += compute_flood_event_score_inputs(e.area_km2, dt)
+        return 1.0 - math.exp(-total)
 
     def calculate_for_lga(
         self,
