@@ -101,7 +101,7 @@ def trigger_risk_recalculation(
         lga = db.query(LGA).filter(LGA.id == lga_id).first()
         if not lga:
             raise HTTPException(status_code=404, detail="LGA not found")
-        results = [calculator.calculate_for_lga(lga_id)]
+        results = [calculator._persist_and_dict(lga)]
     else:
         results = calculator.calculate_all()
 

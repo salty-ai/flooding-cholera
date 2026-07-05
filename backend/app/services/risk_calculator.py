@@ -6,7 +6,7 @@ import math
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
-from app.models import LGA, CaseReport, EnvironmentalData, RiskScore
+from app.models import LGA, CaseReport, EnvironmentalData, RiskScore, FloodEvent
 from app.models.environmental import RiskLevel
 from app.services.groundsource_importer import compute_flood_event_score_inputs
 
@@ -180,116 +180,152 @@ class RiskCalculator:
 
     def calculate_for_lga(
         self,
-        lga_id: int,
-        score_date: Optional[date] = None
-    ) -> Dict[str, Any]:
+        lga,
+        as_of_date: Optional[date] = None
+    ) -> tuple:
         """
         Calculate risk score for a single LGA.
 
-        Returns dict with score, level, and component breakdowns.
+        Returns a 3-tuple: (overall_score, level, components).
+        Does NOT persist a RiskScore row — callers (calculate_all / _persist_and_dict)
+        are responsible for upserting the row.
+
+        v2.0 weights fold in the flood_event_score component.
         """
-        if score_date is None:
-            score_date = date.today()
+        as_of = as_of_date or date.today()
 
-        lga = self.db.query(LGA).filter(LGA.id == lga_id).first()
-        if not lga:
-            return {"error": f"LGA {lga_id} not found"}
+        env = self.get_latest_environmental(lga.id)
+        ndwi = env.ndwi if env else None
+        flood_extent = env.flood_extent_pct if env else None
+        rainfall_7 = env.rainfall_7day_mm if env else None
+        rainfall_30 = env.rainfall_30day_mm if env else None
+        rainfall_mm = rainfall_7
 
-        # Get input data
-        env_data = self.get_latest_environmental(lga_id)
-        case_data = self.get_recent_cases(lga_id)
+        recent = self.get_recent_cases(lga.id, days=14)
 
-        # Calculate component scores
-        flood_score = 0.0
-        rainfall_score = 0.0
-        rainfall_mm = None
-        ndwi = None
-
-        if env_data:
-            flood_score = self.calculate_flood_score(
-                env_data.ndwi,
-                env_data.flood_extent_pct
-            )
-            rainfall_score = self.calculate_rainfall_score(
-                env_data.rainfall_7day_mm,
-                env_data.rainfall_30day_mm
-            )
-            rainfall_mm = env_data.rainfall_7day_mm
-            ndwi = env_data.ndwi
-
-        case_score = self.calculate_case_score(
-            case_data["cases"],
-            case_data["deaths"]
+        flood_score = self.calculate_flood_score(ndwi, flood_extent)
+        flood_event_score = self.calculate_flood_event_score(
+            lga.id, as_of_date=as_of
         )
-
+        rainfall_score = self.calculate_rainfall_score(rainfall_7, rainfall_30)
+        case_score = self.calculate_case_score(
+            recent["cases"], recent["deaths"]
+        )
         vulnerability_score = self.calculate_vulnerability_score(lga)
 
-        # Calculate weighted composite score
-        total_score = (
-            flood_score * self.W_FLOOD +
-            rainfall_score * self.W_RAIN +
-            case_score * self.W_CASES +
-            vulnerability_score * self.W_VULNERABILITY
+        overall = (
+            self.W_FLOOD * flood_score
+            + self.W_FLOOD_EVENT * flood_event_score
+            + self.W_RAIN * rainfall_score
+            + self.W_CASES * case_score
+            + self.W_VULNERABILITY * vulnerability_score
+        )
+        overall = max(0.0, min(1.0, overall))
+        level = RiskScore.get_level_from_score(overall)
+
+        recent_flood_events = (
+            self.db.query(FloodEvent)
+            .filter(
+                FloodEvent.lga_id == lga.id,
+                FloodEvent.start_date >= as_of - timedelta(days=30),
+                FloodEvent.start_date <= as_of,
+            )
+            .count()
         )
 
-        # Determine risk level
-        level = RiskScore.get_level_from_score(total_score)
+        components = {
+            "flood_score": flood_score,
+            "flood_event_score": flood_event_score,
+            "rainfall_score": rainfall_score,
+            "case_score": case_score,
+            "vulnerability_score": vulnerability_score,
+            "recent_flood_events": recent_flood_events,
+            "rainfall_mm": rainfall_mm,
+            "ndwi": ndwi,
+            "recent_cases": recent["cases"],
+            "recent_deaths": recent["deaths"],
+        }
+        return overall, level, components
 
-        # Create/update risk score record
+    def _persist_and_dict(
+        self,
+        lga,
+        score_date: Optional[date] = None
+    ) -> Dict[str, Any]:
+        """
+        Calculate, upsert a RiskScore row (v2.0 fields), commit, and return
+        an API-shaped dict. Shared by calculate_all (loop body) and the
+        single-LGA recalc endpoint.
+        """
+        score_date = score_date or date.today()
+
+        overall, level, components = self.calculate_for_lga(
+            lga, as_of_date=score_date
+        )
+        level_str = level.value if hasattr(level, "value") else level
+
         existing = self.db.query(RiskScore).filter(
-            RiskScore.lga_id == lga_id,
-            RiskScore.score_date == score_date
+            RiskScore.lga_id == lga.id,
+            RiskScore.score_date == score_date,
         ).first()
 
         if existing:
-            existing.score = total_score
-            existing.level = level.value if hasattr(level, 'value') else level
-            existing.flood_score = flood_score
-            existing.rainfall_score = rainfall_score
-            existing.case_score = case_score
-            existing.vulnerability_score = vulnerability_score
-            existing.rainfall_mm = rainfall_mm
-            existing.ndwi = ndwi
-            existing.recent_cases = case_data["cases"]
-            existing.recent_deaths = case_data["deaths"]
+            existing.score = overall
+            existing.level = level_str
+            existing.flood_score = components["flood_score"]
+            existing.rainfall_score = components["rainfall_score"]
+            existing.case_score = components["case_score"]
+            existing.vulnerability_score = components["vulnerability_score"]
+            existing.flood_event_score = components["flood_event_score"]
+            existing.recent_flood_events = components["recent_flood_events"]
+            existing.rainfall_mm = components["rainfall_mm"]
+            existing.ndwi = components["ndwi"]
+            existing.recent_cases = components["recent_cases"]
+            existing.recent_deaths = components["recent_deaths"]
+            existing.algorithm_version = "2.0"
             risk_record = existing
         else:
             risk_record = RiskScore(
-                lga_id=lga_id,
+                lga_id=lga.id,
                 score_date=score_date,
-                score=total_score,
-                level=level.value if hasattr(level, 'value') else level,
-                flood_score=flood_score,
-                rainfall_score=rainfall_score,
-                case_score=case_score,
-                vulnerability_score=vulnerability_score,
-                rainfall_mm=rainfall_mm,
-                ndwi=ndwi,
-                recent_cases=case_data["cases"],
-                recent_deaths=case_data["deaths"]
+                score=overall,
+                level=level_str,
+                flood_score=components["flood_score"],
+                rainfall_score=components["rainfall_score"],
+                case_score=components["case_score"],
+                vulnerability_score=components["vulnerability_score"],
+                flood_event_score=components["flood_event_score"],
+                recent_flood_events=components["recent_flood_events"],
+                rainfall_mm=components["rainfall_mm"],
+                ndwi=components["ndwi"],
+                recent_cases=components["recent_cases"],
+                recent_deaths=components["recent_deaths"],
+                algorithm_version="2.0",
             )
             self.db.add(risk_record)
 
         self.db.commit()
 
         return {
-            "lga_id": lga_id,
+            "lga_id": lga.id,
             "lga_name": lga.name,
             "score_date": score_date.isoformat(),
-            "score": round(total_score, 4),
-            "level": level.value if hasattr(level, 'value') else level,
+            "score": round(overall, 4),
+            "level": level_str,
             "components": {
-                "flood": round(flood_score, 4),
-                "rainfall": round(rainfall_score, 4),
-                "cases": round(case_score, 4),
-                "vulnerability": round(vulnerability_score, 4)
+                "flood": round(components["flood_score"], 4),
+                "flood_event": round(components["flood_event_score"], 4),
+                "rainfall": round(components["rainfall_score"], 4),
+                "cases": round(components["case_score"], 4),
+                "vulnerability": round(components["vulnerability_score"], 4),
+                "recent_flood_events": components["recent_flood_events"],
             },
             "raw_values": {
-                "rainfall_7day_mm": rainfall_mm,
-                "ndwi": ndwi,
-                "recent_cases": case_data["cases"],
-                "recent_deaths": case_data["deaths"]
-            }
+                "rainfall_7day_mm": components["rainfall_mm"],
+                "ndwi": components["ndwi"],
+                "recent_cases": components["recent_cases"],
+                "recent_deaths": components["recent_deaths"],
+            },
         }
 
     def calculate_all(
@@ -302,7 +338,7 @@ class RiskCalculator:
 
         for lga in lgas:
             try:
-                result = self.calculate_for_lga(lga.id, score_date)
+                result = self._persist_and_dict(lga, score_date)
                 results.append(result)
             except Exception as e:
                 logger.error(f"Error calculating risk for LGA {lga.id}: {e}")
