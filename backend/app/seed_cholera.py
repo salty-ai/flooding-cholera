@@ -7,7 +7,10 @@ from app.database import SessionLocal  # noqa: E402
 from app.services.cholera_adapter import import_cholera_monthly  # noqa: E402
 
 DEFAULT_CSV = os.path.join(
-    os.path.dirname(__file__), "data", "cholera_real", "nigeria_cholera_2020_2025.csv"
+    os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+    "data",
+    "cholera_real",
+    "nigeria_cholera_2020_2025.csv",
 )
 
 

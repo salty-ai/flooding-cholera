@@ -29,9 +29,12 @@ def test_parse_cholera_row():
 
 
 def test_epi_week_of_date():
-    # date(2024,3,1) -> ISO year 2024, week 9
-    expected = date(2024, 3, 1).isocalendar()
-    assert epi_week_of_date(date(2024, 3, 1)) == (expected.week, expected.year)
-    # Sanity: a known January date
-    expected_jan = date(2024, 1, 1).isocalendar()
-    assert epi_week_of_date(date(2024, 1, 1)) == (expected_jan.week, expected_jan.year)
+    # Hardcoded ISO-week boundary cases (verified via date.isocalendar()).
+    # epi_week_of_date returns (iso_week, iso_year).
+
+    # Year-boundary: Sun Jan 1 2023 falls in ISO week 52 of 2022.
+    assert epi_week_of_date(date(2023, 1, 1)) == (52, 2022)
+    # Year-boundary: Mon Dec 30 2024 falls in ISO week 1 of 2025.
+    assert epi_week_of_date(date(2024, 12, 30)) == (1, 2025)
+    # Normal mid-year case: Mar 1 2024 is ISO week 9 of 2024.
+    assert epi_week_of_date(date(2024, 3, 1)) == (9, 2024)
