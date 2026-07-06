@@ -217,6 +217,12 @@ export const apiService = {
     const response = await api.put(`/alerts/rules/${id}`, body);
     return response.data;
   },
+
+  // Surveillance reports
+  getSurveillanceReport: async (params: { period: string; from: string; to: string; lga_id?: number; state?: string }) => {
+    const response = await api.get('/reports/surveillance', { params });
+    return response.data;
+  },
 };
 
 // React Query Hooks

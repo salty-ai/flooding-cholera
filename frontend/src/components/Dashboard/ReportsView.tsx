@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { useRiskScores, useDashboard, useLgaAnalytics } from '../../hooks/useApi';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import toast from 'react-hot-toast';
+import { useRiskScores, useDashboard, useLgaAnalytics, apiService } from '../../hooks/useApi';
 import { useAppStore } from '../../store/appStore';
 import {
   LineChart,
@@ -306,6 +309,310 @@ function EnvironmentalReport() {
   );
 }
 
+type SurveillanceScope = 'national' | 'state' | 'lga';
+type SurveillancePeriod = 'weekly' | 'monthly';
+
+interface SurveillanceReport {
+  period: string;
+  scope: string;
+  from: string;
+  to: string;
+  totals: { cases: number; deaths: number; cfr: number };
+  previous?: { cases: number };
+  hotspots_by_cases?: Array<{ lga_id?: number; lga_name?: string; cases?: number; deaths?: number; risk_level?: string }>;
+  hotspots_by_risk?: Array<{ lga_id?: number; lga_name?: string; score?: number; risk_level?: string; cases?: number }>;
+  risk_distribution?: Record<string, number>;
+}
+
+const SURVEILLANCE_RISK_COLORS: Record<string, string> = {
+  red: '#ef4444',
+  yellow: '#eab308',
+  green: '#22c55e',
+  High: '#ef4444',
+  Medium: '#eab308',
+  Low: '#22c55e',
+};
+
+function SurveillanceReportPanel() {
+  const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+  const [period, setPeriod] = useState<SurveillancePeriod>('weekly');
+  const [scope, setScope] = useState<SurveillanceScope>('national');
+  const [stateFilter, setStateFilter] = useState('');
+  const [lgaId, setLgaId] = useState('');
+  const [from, setFrom] = useState<Date | null>(null);
+  const [to, setTo] = useState<Date | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [report, setReport] = useState<SurveillanceReport | null>(null);
+
+  const buildParams = () => {
+    const params: { period: string; from: string; to: string; state?: string; lga_id?: number } = {
+      period,
+      from: from ? from.toISOString().slice(0, 10) : '',
+      to: to ? to.toISOString().slice(0, 10) : '',
+    };
+    if (scope === 'state' && stateFilter) params.state = stateFilter;
+    if (scope === 'lga' && lgaId) params.lga_id = Number(lgaId);
+    return params;
+  };
+
+  const handlePreview = async () => {
+    if (!from || !to) {
+      toast.error('Please select a date range');
+      return;
+    }
+    setLoading(true);
+    try {
+      const data = await apiService.getSurveillanceReport(buildParams());
+      setReport(data);
+      toast.success('Surveillance report generated');
+    } catch {
+      toast.error('Failed to generate surveillance report');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownload = (format: 'pdf' | 'csv') => {
+    if (!from || !to) {
+      toast.error('Please select a date range');
+      return;
+    }
+    const p = buildParams();
+    const params = new URLSearchParams({ period: p.period, from: p.from, to: p.to });
+    if (p.state) params.set('state', p.state);
+    if (p.lga_id !== undefined) params.set('lga_id', String(p.lga_id));
+    params.set('format', format);
+    window.open(`${API_BASE}/reports/surveillance/export?${params.toString()}`);
+  };
+
+  const fmtDate = (d: string) =>
+    d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A';
+
+  const prevCases = report?.previous?.cases;
+  const casesDelta = report && prevCases !== undefined ? report.totals.cases - prevCases : null;
+
+  const riskDistData = report?.risk_distribution
+    ? Object.entries(report.risk_distribution).map(([name, value]) => ({
+        name,
+        value,
+        color: SURVEILLANCE_RISK_COLORS[name] || '#637588',
+      }))
+    : [];
+
+  const topHotspots = report?.hotspots_by_cases?.slice(0, 5) || [];
+
+  return (
+    <div className="bg-white rounded-xl border border-[#e6e8eb] p-6 space-y-6">
+      <div>
+        <h3 className="text-lg font-bold text-[#111518]">Surveillance Report</h3>
+        <p className="text-[#637588] text-sm mt-1">Generate a cholera surveillance report for a date range and scope.</p>
+      </div>
+
+      {/* Controls */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div>
+          <label className="block text-xs font-medium text-[#637588] mb-1">Period</label>
+          <select
+            value={period}
+            onChange={(e) => setPeriod(e.target.value as SurveillancePeriod)}
+            className="w-full border border-[#e6e8eb] rounded-lg px-3 py-2 text-sm bg-white"
+          >
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-[#637588] mb-1">Scope</label>
+          <select
+            value={scope}
+            onChange={(e) => setScope(e.target.value as SurveillanceScope)}
+            className="w-full border border-[#e6e8eb] rounded-lg px-3 py-2 text-sm bg-white"
+          >
+            <option value="national">National</option>
+            <option value="state">State</option>
+            <option value="lga">LGA</option>
+          </select>
+        </div>
+        {scope === 'state' && (
+          <div>
+            <label className="block text-xs font-medium text-[#637588] mb-1">State</label>
+            <input
+              type="text"
+              value={stateFilter}
+              onChange={(e) => setStateFilter(e.target.value)}
+              placeholder="e.g. Lagos"
+              className="w-full border border-[#e6e8eb] rounded-lg px-3 py-2 text-sm"
+            />
+          </div>
+        )}
+        {scope === 'lga' && (
+          <div>
+            <label className="block text-xs font-medium text-[#637588] mb-1">LGA ID</label>
+            <input
+              type="number"
+              value={lgaId}
+              onChange={(e) => setLgaId(e.target.value)}
+              placeholder="e.g. 1"
+              className="w-full border border-[#e6e8eb] rounded-lg px-3 py-2 text-sm"
+            />
+          </div>
+        )}
+        <div>
+          <label className="block text-xs font-medium text-[#637588] mb-1">From</label>
+          <DatePicker
+            selected={from}
+            onChange={(d: Date | null) => setFrom(d)}
+            selectsStart
+            startDate={from}
+            endDate={to}
+            dateFormat="yyyy-MM-dd"
+            className="w-full border border-[#e6e8eb] rounded-lg px-3 py-2 text-sm"
+            placeholderText="Start date"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-[#637588] mb-1">To</label>
+          <DatePicker
+            selected={to}
+            onChange={(d: Date | null) => setTo(d)}
+            selectsEnd
+            startDate={from}
+            endDate={to}
+            minDate={from || undefined}
+            dateFormat="yyyy-MM-dd"
+            className="w-full border border-[#e6e8eb] rounded-lg px-3 py-2 text-sm"
+            placeholderText="End date"
+          />
+        </div>
+      </div>
+
+      {/* Action buttons */}
+      <div className="flex flex-wrap gap-3">
+        <button
+          onClick={handlePreview}
+          disabled={loading}
+          className="px-4 py-2 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-50"
+        >
+          {loading ? 'Generating...' : 'Preview'}
+        </button>
+        <button
+          onClick={() => handleDownload('pdf')}
+          className="flex items-center gap-2 px-4 py-2 bg-[#f0f2f5] text-[#111518] rounded-lg text-sm font-medium hover:bg-[#e6e8eb] transition-colors"
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>picture_as_pdf</span>
+          Download PDF
+        </button>
+        <button
+          onClick={() => handleDownload('csv')}
+          className="flex items-center gap-2 px-4 py-2 bg-[#f0f2f5] text-[#111518] rounded-lg text-sm font-medium hover:bg-[#e6e8eb] transition-colors"
+        >
+          <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>table_chart</span>
+          Download CSV
+        </button>
+      </div>
+
+      {/* Report output */}
+      {report && (
+        <div className="space-y-6 pt-4 border-t border-[#e6e8eb]">
+          <div className="flex flex-wrap gap-x-6 gap-y-1 text-xs text-[#637588]">
+            <span>Period: <span className="font-medium text-[#111518]">{report.period}</span></span>
+            <span>Scope: <span className="font-medium text-[#111518]">{report.scope}</span></span>
+            <span>From: <span className="font-medium text-[#111518]">{fmtDate(report.from)}</span></span>
+            <span>To: <span className="font-medium text-[#111518]">{fmtDate(report.to)}</span></span>
+          </div>
+
+          {/* Summary cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-[#f0f2f5] rounded-lg p-4">
+              <p className="text-[#637588] text-xs font-medium mb-1">Total Cases</p>
+              <p className="text-2xl font-bold text-[#111518]">{report.totals.cases}</p>
+              {casesDelta !== null && (
+                <p className={`text-xs mt-1 ${casesDelta > 0 ? 'text-red-500' : casesDelta < 0 ? 'text-green-500' : 'text-[#637588]'}`}>
+                  {casesDelta > 0 ? '+' : ''}{casesDelta} vs prev
+                </p>
+              )}
+            </div>
+            <div className="bg-[#f0f2f5] rounded-lg p-4">
+              <p className="text-[#637588] text-xs font-medium mb-1">Deaths</p>
+              <p className="text-2xl font-bold text-red-600">{report.totals.deaths}</p>
+            </div>
+            <div className="bg-[#f0f2f5] rounded-lg p-4">
+              <p className="text-[#637588] text-xs font-medium mb-1">CFR</p>
+              <p className="text-2xl font-bold text-[#111518]">{(report.totals.cfr * 100).toFixed(1)}%</p>
+            </div>
+            <div className="bg-[#f0f2f5] rounded-lg p-4">
+              <p className="text-[#637588] text-xs font-medium mb-1">Previous Cases</p>
+              <p className="text-2xl font-bold text-[#111518]">{prevCases ?? 'N/A'}</p>
+            </div>
+          </div>
+
+          {/* Risk distribution */}
+          {riskDistData.length > 0 && (
+            <div className="bg-[#f0f2f5] rounded-lg p-4">
+              <h4 className="font-bold text-[#111518] mb-3">Risk-Level Distribution</h4>
+              <div className="space-y-2">
+                {riskDistData.map((entry) => (
+                  <div key={entry.name} className="flex items-center gap-3">
+                    <span className="text-sm text-[#637588] w-24">{entry.name}</span>
+                    <div className="flex-1 h-3 bg-white rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full"
+                        style={{ width: `${Math.min(100, (entry.value / Math.max(...riskDistData.map((d: { value: number }) => d.value), 1)) * 100)}%`, backgroundColor: entry.color }}
+                      />
+                    </div>
+                    <span className="text-sm font-medium text-[#111518] w-8 text-right">{entry.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Top hotspots */}
+          {topHotspots.length > 0 && (
+            <div className="bg-[#f0f2f5] rounded-lg p-4">
+              <h4 className="font-bold text-[#111518] mb-3">Top Hotspots by Cases</h4>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-[#637588] border-b border-[#e6e8eb]">
+                      <th className="py-2 pr-4">#</th>
+                      <th className="py-2 pr-4">LGA</th>
+                      <th className="py-2 pr-4">Cases</th>
+                      <th className="py-2 pr-4">Deaths</th>
+                      <th className="py-2">Risk</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {topHotspots.map((h, idx) => (
+                      <tr key={h.lga_id ?? idx} className="border-b border-[#e6e8eb] last:border-0">
+                        <td className="py-2 pr-4 text-[#637588]">{idx + 1}</td>
+                        <td className="py-2 pr-4 font-medium text-[#111518]">{h.lga_name || 'Unknown'}</td>
+                        <td className="py-2 pr-4 text-[#111518]">{h.cases ?? 0}</td>
+                        <td className="py-2 pr-4 text-red-600">{h.deaths ?? 0}</td>
+                        <td className="py-2">
+                          <span
+                            className="px-2 py-0.5 rounded text-xs font-medium"
+                            style={{
+                              color: SURVEILLANCE_RISK_COLORS[h.risk_level || ''] || '#637588',
+                              backgroundColor: `${SURVEILLANCE_RISK_COLORS[h.risk_level || ''] || '#637588'}1a`,
+                            }}
+                          >
+                            {h.risk_level || 'N/A'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TrendsReport() {
   // Mock trend data - in real app would come from API
   const weeklyTrend = [
@@ -408,6 +715,11 @@ export default function ReportsView() {
       {activeReport === 'lga' && <LGAReport />}
       {activeReport === 'environmental' && <EnvironmentalReport />}
       {activeReport === 'trends' && <TrendsReport />}
+
+      {/* Surveillance Report Panel */}
+      <div className="pt-6 border-t border-[#e6e8eb]">
+        <SurveillanceReportPanel />
+      </div>
     </div>
   );
 }
