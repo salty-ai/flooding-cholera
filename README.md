@@ -224,6 +224,47 @@ Calabar Municipal,2024-01-15,25.5,0.35,true
 Odukpani,2024-01-15,20.0,0.25,false
 ```
 
+## Data Sources & Setup
+
+The system has nationwide coverage: all 774 LGAs across 37 states plus the Federal Capital Territory (FCT). The datasets and commands below populate the database with real boundaries, flood observations, and cholera case records.
+
+### Data Sources
+
+- **LGA boundaries (nationwide):** Nigerian Local Government Area administrative boundaries from the HDX COD-AB (Common Operational Dataset - Administrative Boundaries) dataset. These geometries underpin the choropleth map and all LGA-based joins.
+- **Groundsource flood data:** Flood extent observations from the Groundsource dataset on Zenodo (`https://zenodo.org/records/18647054`, ~667 MB, licensed CC BY 4.0). Provided as a Parquet file and imported via the admin endpoint described below.
+- **Real cholera cases:** Epidemiological case data for 2020–2025 at `backend/data/cholera_real/nigeria_cholera_2020_2025.csv`. This CSV is imported by the cholera seed command.
+
+### Setup Commands
+
+From the `backend` directory (with the virtual environment activated), run the following to load nationwide data and recompute risk scores:
+
+```bash
+# 1. Seed default alert rules
+python -m app.seed_alert_rules
+
+# 2. Import the real cholera CSV into the database
+python -m app.seed_cholera
+
+# 3. Backfill risk v2.0 scores across the date range
+python -m app.backfill_risks --start 2020-01-01 --end 2025-12-01
+```
+
+### Groundsource Import
+
+To import a Groundsource Parquet file after the server is running, call the admin endpoint:
+
+```bash
+curl -X POST http://localhost:8000/api/admin/data/groundsource-import \
+  -H "Content-Type: application/json" \
+  -d '{"path": "/absolute/path/to/groundsource.parquet"}'
+```
+
+The sibling endpoint `POST /api/admin/data/cholera-import` (same body shape, pointing at a cholera CSV) is also available for ad-hoc imports.
+
+### `SEED_DEMO` Flag
+
+The `SEED_DEMO` environment variable controls whether demo/seed data is loaded at startup. Set `SEED_DEMO=false` (or unset it) for production deployments that should rely solely on the real datasets above; leave it enabled for local development and quick demos.
+
 ## Development
 
 ### Running Tests
