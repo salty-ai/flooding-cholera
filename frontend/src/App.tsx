@@ -13,6 +13,7 @@ const AlertsPanel = lazy(() => import('./components/Alerts/AlertsPanel'));
 const SatellitePanel = lazy(() => import('./components/Satellite/SatellitePanel'));
 const DataUpload = lazy(() => import('./components/Upload/DataUpload'));
 const LGAReportPage = lazy(() => import('./components/LGADetail/LGAReportPage'));
+const CorrelationView = lazy(() => import('./components/Analytics/CorrelationView'));
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -25,7 +26,7 @@ const queryClient = new QueryClient({
   },
 });
 
-export type TabId = 'dashboard' | 'map' | 'reports' | 'alerts' | 'satellite' | 'settings';
+export type TabId = 'dashboard' | 'map' | 'reports' | 'alerts' | 'satellite' | 'settings' | 'correlation';
 
 export function LoadingFallback() {
   return (
@@ -46,6 +47,7 @@ function routeToTab(pathname: string): TabId {
   if (pathname === '/alerts') return 'alerts';
   if (pathname === '/satellite') return 'satellite';
   if (pathname === '/settings') return 'settings';
+  if (pathname === '/correlation') return 'correlation';
   return 'dashboard';
 }
 
@@ -98,6 +100,7 @@ function MainAppContent() {
                   <Route path="/alerts" element={<AlertsPanel />} />
                   <Route path="/satellite" element={<SatellitePanel />} />
                   <Route path="/settings" element={<DataUpload />} />
+                  <Route path="/correlation" element={<CorrelationView />} />
                 </Routes>
               </Suspense>
             </ErrorBoundary>

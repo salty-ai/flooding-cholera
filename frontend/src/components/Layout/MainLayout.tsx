@@ -35,6 +35,7 @@ export default function MainLayout({ activeTab, onTabChange, children }: MainLay
     { id: 'reports', label: 'Reports', icon: 'description' },
     { id: 'alerts', label: 'Alerts', icon: 'notifications_active', badge: criticalAlerts > 0 ? criticalAlerts : undefined },
     { id: 'satellite', label: 'Satellite', icon: 'satellite_alt' },
+    { id: 'correlation', label: 'Correlation', icon: 'insights' },
     { id: 'settings', label: 'Settings', icon: 'settings' },
   ];
 

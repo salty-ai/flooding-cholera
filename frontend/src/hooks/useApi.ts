@@ -81,6 +81,11 @@ export const apiService = {
     return response.data;
   },
 
+  getCorrelation: async (params: { lga_id?: number; state?: string; from_year: number; to_year: number }) => {
+    const response = await api.get('/analytics/correlation', { params });
+    return response.data;
+  },
+
   // Risk calculation
   calculateRisks: async (): Promise<{ success: boolean; results: unknown[] }> => {
     const response = await api.post('/risk-scores/calculate');
@@ -244,6 +249,15 @@ export function useWeeklySummary(weeks: number = 12) {
     queryKey: ['analytics', 'summary', 'weekly', weeks],
     queryFn: () => apiService.getWeeklySummary(weeks),
     staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useCorrelation(params: { lga_id?: number; state?: string; from_year: number; to_year: number } | null) {
+  return useQuery({
+    queryKey: ['analytics', 'correlation', params],
+    queryFn: () => apiService.getCorrelation(params!),
+    enabled: !!params,
+    staleTime: 60 * 1000,
   });
 }
 
