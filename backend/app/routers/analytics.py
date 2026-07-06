@@ -1,7 +1,10 @@
 """Analytics endpoints for charts and time-series data."""
+import csv
+import io
 from datetime import date, timedelta
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 
@@ -9,6 +12,7 @@ from app.database import get_db
 from app.models import LGA, RiskScore, CaseReport, EnvironmentalData
 from app.schemas import LGAAnalytics, TimeSeriesPoint
 from app.rate_limiter import limiter
+from app.services.correlation_service import build_correlation_report
 
 router = APIRouter(prefix="/api/analytics", tags=["Analytics"])
 
@@ -290,3 +294,49 @@ def get_weekly_summary(
             for w, c, d in cases
         ]
     }
+
+
+@router.get("/correlation")
+@limiter.limit("30/minute")
+def get_correlation(
+    request: Request,
+    lga_id: Optional[int] = Query(None),
+    state: Optional[str] = Query(None),
+    from_year: int = Query(2020, ge=2000, le=2100),
+    to_year: int = Query(2025, ge=2000, le=2100),
+    db: Session = Depends(get_db),
+):
+    if lga_id:
+        scope = {"level": "lga", "lga_id": lga_id}
+    elif state:
+        scope = {"level": "state", "state": state}
+    else:
+        scope = {"level": "national"}
+    return build_correlation_report(db, scope, from_year, to_year)
+
+
+@router.get("/correlation/export")
+@limiter.limit("20/minute")
+def export_correlation(
+    request: Request,
+    lga_id: Optional[int] = Query(None),
+    state: Optional[str] = Query(None),
+    from_year: int = Query(2020, ge=2000, le=2100),
+    to_year: int = Query(2025, ge=2000, le=2100),
+    db: Session = Depends(get_db),
+):
+    if lga_id:
+        scope = {"level": "lga", "lga_id": lga_id}
+    elif state:
+        scope = {"level": "state", "state": state}
+    else:
+        scope = {"level": "national"}
+    report = build_correlation_report(db, scope, from_year, to_year)
+    out = io.StringIO()
+    w = csv.writer(out)
+    w.writerow(["lag", "pearson_r", "p_value", "n", "insufficient_data"])
+    for r in report["lags"]:
+        w.writerow([r["lag"], r["pearson_r"], r["p_value"], r["n"], r["insufficient_data"]])
+    out.seek(0)
+    return StreamingResponse(iter([out.getvalue()]), media_type="text/csv",
+                             headers={"Content-Disposition": "attachment; filename=correlation.csv"})
