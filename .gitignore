@@ -97,3 +97,11 @@ backend/secrets/
 
 # Git Worktrees
 .worktrees/
+
+# Local agent/tooling config
+.claude/
+.agents/
+
+# Runtime agent uploads and local data spreadsheets
+backend/data/agent_uploads/
+frontend/public/*.xlsx
