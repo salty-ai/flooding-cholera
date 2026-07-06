@@ -128,9 +128,10 @@ export const apiService = {
   },
 
   // Alerts - fetches from backend alerts endpoint
-  getAlerts: async (): Promise<Alert[]> => {
+  getAlerts: async (filters?: { severity?: string; is_acknowledged?: boolean; lga_id?: number }): Promise<Alert[]> => {
     try {
-      const response = await api.get('/alerts', { params: { is_active: true } });
+      const params = { is_active: true, ...filters };
+      const response = await api.get('/alerts', { params });
       const alertsData = response.data.alerts || response.data || [];
 
       // Transform backend format to frontend format
@@ -197,6 +198,24 @@ export const apiService = {
         return [];
       }
     }
+  },
+
+  acknowledgeAlert: async (id: number, body: { user_id: number | null }) => {
+    const response = await api.patch(`/alerts/${id}`, body);
+    return response.data;
+  },
+
+  getAlertRules: async () => {
+    const response = await api.get('/alerts/rules');
+    return response.data;
+  },
+  createAlertRule: async (body: Record<string, unknown>) => {
+    const response = await api.post('/alerts/rules', body);
+    return response.data;
+  },
+  updateAlertRule: async (id: number, body: Record<string, unknown>) => {
+    const response = await api.put(`/alerts/rules/${id}`, body);
+    return response.data;
   },
 };
 
@@ -279,10 +298,10 @@ export function useSatelliteData() {
   });
 }
 
-export function useAlerts() {
+export function useAlerts(filters?: { severity?: string; is_acknowledged?: boolean; lga_id?: number }) {
   return useQuery({
-    queryKey: queryKeys.alerts,
-    queryFn: apiService.getAlerts,
+    queryKey: filters ? ['alerts', filters] : queryKeys.alerts,
+    queryFn: () => apiService.getAlerts(filters),
     staleTime: 1 * 60 * 1000, // 1 minute
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
   });
