@@ -288,3 +288,24 @@ class DashboardSummary(BaseModel):
     lgas_low_risk: int
     avg_rainfall_7day: float
     last_updated: datetime
+
+
+# ============ Alert Rule Schemas ============
+
+class AlertRuleBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    metric: str
+    operator: str
+    threshold: float
+    window_days: int = 0
+    severity: str = "warning"
+    enabled: bool = True
+
+class AlertRuleCreate(AlertRuleBase):
+    pass
+
+class AlertRuleResponse(AlertRuleBase):
+    id: int
+    class Config:
+        from_attributes = True

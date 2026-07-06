@@ -72,6 +72,20 @@ def scheduled_risk_calculation():
         db.close()
 
 
+def scheduled_alert_evaluation():
+    """Evaluate alert rules daily after risk recompute."""
+    logger.info("Running scheduled alert evaluation...")
+    db = SessionLocal()
+    try:
+        from app.services.alert_engine import run_alert_engine
+        n = run_alert_engine(db)
+        logger.info(f"Alert engine fired {n} alerts")
+    except Exception as e:
+        logger.error(f"Error in scheduled alert evaluation: {e}")
+    finally:
+        db.close()
+
+
 def auto_seed_if_empty():
     """Seed database with nationwide LGAs if empty."""
     import os
@@ -126,6 +140,13 @@ async def lifespan(app: FastAPI):
         hour=6,
         minute=0,
         id='daily_risk_calculation'
+    )
+    scheduler.add_job(
+        scheduled_alert_evaluation,
+        'cron',
+        hour=6,
+        minute=30,
+        id='daily_alert_evaluation',
     )
     scheduler.start()
     logger.info("Background scheduler started")

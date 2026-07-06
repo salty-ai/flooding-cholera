@@ -1,17 +1,22 @@
 """Alert endpoints for surveillance system notifications."""
+import csv
+import io
 from datetime import datetime
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, or_
 
 from app.database import get_db
-from app.models import Alert, LGA
+from app.models import Alert, AlertRule, LGA
 from app.schemas import (
     AlertResponse,
     AlertWithLGA,
     AlertListResponse,
-    AlertAcknowledge
+    AlertAcknowledge,
+    AlertRuleCreate,
+    AlertRuleResponse,
 )
 from app.rate_limiter import limiter
 
@@ -107,6 +112,48 @@ def list_alerts(
         skip=skip,
         limit=limit
     )
+
+
+@router.get("/rules", response_model=list[AlertRuleResponse])
+@limiter.limit("60/minute")
+def list_rules(request: Request, db: Session = Depends(get_db)):
+    return db.query(AlertRule).order_by(AlertRule.id).all()
+
+
+@router.post("/rules", response_model=AlertRuleResponse, status_code=201)
+@limiter.limit("20/minute")
+def create_rule(request: Request, body: AlertRuleCreate, db: Session = Depends(get_db)):
+    rule = AlertRule(**body.model_dump())
+    db.add(rule); db.commit(); db.refresh(rule)
+    return rule
+
+
+@router.put("/rules/{rule_id}", response_model=AlertRuleResponse)
+@limiter.limit("20/minute")
+def update_rule(request: Request, rule_id: int, body: AlertRuleCreate,
+                db: Session = Depends(get_db)):
+    rule = db.get(AlertRule, rule_id)
+    if not rule:
+        raise HTTPException(404, "Rule not found")
+    for k, v in body.model_dump().items():
+        setattr(rule, k, v)
+    db.commit(); db.refresh(rule)
+    return rule
+
+
+@router.get("/export")
+@limiter.limit("20/minute")
+def export_alerts(request: Request, db: Session = Depends(get_db)):
+    rows = db.query(Alert, LGA.name).outerjoin(LGA, Alert.lga_id == LGA.id).all()
+    out = io.StringIO(); w = csv.writer(out)
+    w.writerow(["id", "rule_id", "lga_id", "lga_name", "severity", "level",
+                "triggered_value", "message", "is_active", "is_acknowledged", "created_at"])
+    for a, name in rows:
+        w.writerow([a.id, a.rule_id, a.lga_id, name, a.severity, a.level,
+                    a.triggered_value, a.message, a.is_active, a.is_acknowledged, a.created_at])
+    out.seek(0)
+    return StreamingResponse(iter([out.getvalue()]), media_type="text/csv",
+                             headers={"Content-Disposition": "attachment; filename=alerts.csv"})
 
 
 @router.get("/{alert_id}", response_model=AlertWithLGA)
@@ -259,3 +306,30 @@ def get_alert_stats(
         stats["by_type"][alert_type] += 1
 
     return stats
+
+
+@router.patch("/{alert_id}", response_model=AlertResponse)
+@limiter.limit("30/minute")
+def patch_acknowledge_alert(
+    request: Request,
+    alert_id: int,
+    acknowledge_data: AlertAcknowledge,
+    db: Session = Depends(get_db),
+):
+    """Acknowledge an alert via PATCH and deactivate it."""
+    alert = db.query(Alert).filter(Alert.id == alert_id).first()
+    if not alert:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Alert with ID {alert_id} not found",
+        )
+    if alert.acknowledged_at:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Alert has already been acknowledged",
+        )
+    alert.acknowledge(user_id=acknowledge_data.user_id)
+    alert.is_active = False
+    db.commit()
+    db.refresh(alert)
+    return alert
