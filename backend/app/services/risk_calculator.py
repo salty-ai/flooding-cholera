@@ -124,17 +124,20 @@ class RiskCalculator:
     def get_recent_cases(
         self,
         lga_id: int,
-        days: int = 14
+        days: int = 14,
+        as_of: Optional[date] = None
     ) -> Dict[str, int]:
-        """Get case and death counts for recent period."""
-        start_date = date.today() - timedelta(days=days)
+        """Get case and death counts for the recent period ending on as_of."""
+        as_of = as_of or date.today()
+        start_date = as_of - timedelta(days=days)
 
         result = self.db.query(
             func.sum(CaseReport.new_cases),
             func.sum(CaseReport.deaths)
         ).filter(
             CaseReport.lga_id == lga_id,
-            CaseReport.report_date >= start_date
+            CaseReport.report_date >= start_date,
+            CaseReport.report_date <= as_of
         ).first()
 
         return {
@@ -142,10 +145,16 @@ class RiskCalculator:
             "deaths": result[1] or 0
         }
 
-    def get_latest_environmental(self, lga_id: int) -> Optional[EnvironmentalData]:
-        """Get most recent environmental data for an LGA."""
+    def get_latest_environmental(
+        self,
+        lga_id: int,
+        as_of: Optional[date] = None
+    ) -> Optional[EnvironmentalData]:
+        """Get most recent environmental data for an LGA on or before as_of."""
+        as_of = as_of or date.today()
         return self.db.query(EnvironmentalData).filter(
-            EnvironmentalData.lga_id == lga_id
+            EnvironmentalData.lga_id == lga_id,
+            EnvironmentalData.observation_date <= as_of
         ).order_by(
             EnvironmentalData.observation_date.desc()
         ).first()
@@ -194,14 +203,14 @@ class RiskCalculator:
         """
         as_of = as_of_date or date.today()
 
-        env = self.get_latest_environmental(lga.id)
+        env = self.get_latest_environmental(lga.id, as_of=as_of)
         ndwi = env.ndwi if env else None
         flood_extent = env.flood_extent_pct if env else None
         rainfall_7 = env.rainfall_7day_mm if env else None
         rainfall_30 = env.rainfall_30day_mm if env else None
         rainfall_mm = rainfall_7
 
-        recent = self.get_recent_cases(lga.id, days=14)
+        recent = self.get_recent_cases(lga.id, days=14, as_of=as_of)
 
         flood_score = self.calculate_flood_score(ndwi, flood_extent)
         flood_event_score = self.calculate_flood_event_score(

@@ -1,7 +1,7 @@
 """phase1 flood alerts rules riskscore
 
 Revision ID: 30471e8f27bc
-Revises: 6c9553630121
+Revises: a1b2c3d4e5f6
 Create Date: 2026-07-05 10:17:34.449060+00:00
 
 """
@@ -14,7 +14,7 @@ from geoalchemy2 import Geometry
 
 # revision identifiers, used by Alembic.
 revision: str = '30471e8f27bc'
-down_revision: Union[str, None] = '6c9553630121'
+down_revision: Union[str, None] = 'a1b2c3d4e5f6'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

@@ -15,8 +15,8 @@ interface AlertRule {
   enabled: boolean;
 }
 
-const METRICS = ['risk_score', 'cases', 'rainfall_mm', 'flood_extent_pct', 'ndwi'];
-const OPERATORS = ['>', '>=', '<', '<=', '=='];
+const METRICS = ['risk_score', 'flood_event_count', 'new_cases', 'cfr'];
+const OPERATORS = ['>', '>=', '<', '<='];
 const SEVERITIES = ['info', 'warning', 'critical'];
 
 const RULES_QUERY_KEY = ['alertRules'] as const;

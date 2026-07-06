@@ -25,6 +25,17 @@ def _applies(operator: str, threshold: float, value: float) -> bool:
     return fn(value, threshold)
 
 
+_SEVERITY_TO_LEVEL = {"info": "green", "warning": "yellow", "critical": "red"}
+
+
+def _level_for_alert(rule: AlertRule, value: float) -> str:
+    """Map a rule metric + value to a green/yellow/red alert level."""
+    if rule.metric == "risk_score":
+        level = RiskScore.get_level_from_score(value)
+        return level.value if hasattr(level, "value") else str(level)
+    return _SEVERITY_TO_LEVEL.get(rule.severity, "yellow")
+
+
 def _window_start(rule: AlertRule, as_of: date) -> Optional[date]:
     if rule.window_days and rule.window_days > 0:
         return as_of - timedelta(days=rule.window_days)
@@ -87,7 +98,7 @@ def evaluate_rule(db: Session, rule: AlertRule, as_of: date) -> List[Alert]:
             title=rule.name,
             severity=rule.severity,
             triggered_value=float(val),
-            level=rule.severity,  # reuse level column loosely
+            level=_level_for_alert(rule, val),
             message=f"{rule.name}: {rule.metric}={val:.3f} {rule.operator} {rule.threshold}",
             is_active=True,
         ))

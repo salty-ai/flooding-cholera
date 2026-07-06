@@ -19,18 +19,24 @@ def build_surveillance_report(
     from_date: date,
     to_date: date,
 ) -> Dict[str, Any]:
-    def lga_filter(col):
-        if scope.get("level") == "lga" and scope.get("lga_id"):
-            return col == scope["lga_id"]
-        return None
+    scope_level = scope.get("level")
+    scope_lga_id = scope.get("lga_id")
+    scope_state = scope.get("state")
+
+    def _apply_scope(q, lga_col, lga_joined=False):
+        """Apply scope filter to *q*. lga_col is the FK to lgas.id."""
+        if scope_level == "lga" and scope_lga_id:
+            return q.filter(lga_col == scope_lga_id)
+        if scope_level == "state" and scope_state:
+            if not lga_joined:
+                q = q.join(LGA, LGA.id == lga_col)
+            return q.filter(LGA.state == scope_state)
+        return q
 
     # Totals
     cq = db.query(func.sum(CaseReport.new_cases), func.sum(CaseReport.deaths)).filter(
         CaseReport.report_date >= from_date, CaseReport.report_date <= to_date)
-    if scope.get("level") == "lga" and scope.get("lga_id"):
-        cq = cq.filter(CaseReport.lga_id == scope["lga_id"])
-    elif scope.get("level") == "state" and scope.get("state"):
-        cq = cq.join(LGA, LGA.id == CaseReport.lga_id).filter(LGA.state == scope["state"])
+    cq = _apply_scope(cq, CaseReport.lga_id)
     cases, deaths = cq.first()
     cases = int(cases or 0); deaths = int(deaths or 0)
     cfr = (deaths / cases) if cases else 0.0
@@ -40,36 +46,43 @@ def build_surveillance_report(
     prev_from = from_date - timedelta(days=span)
     pq = db.query(func.sum(CaseReport.new_cases)).filter(
         CaseReport.report_date >= prev_from, CaseReport.report_date < from_date)
-    if scope.get("level") == "lga" and scope.get("lga_id"):
-        pq = pq.filter(CaseReport.lga_id == scope["lga_id"])
+    pq = _apply_scope(pq, CaseReport.lga_id)
     prev_cases = int(pq.scalar() or 0)
 
     # Hotspots by cases
     hq = db.query(LGA.id, LGA.name, func.sum(CaseReport.new_cases).label("c")).join(
         CaseReport, CaseReport.lga_id == LGA.id).filter(
-        CaseReport.report_date >= from_date, CaseReport.report_date <= to_date).group_by(LGA.id, LGA.name).order_by(func.sum(CaseReport.new_cases).desc()).limit(10)
+        CaseReport.report_date >= from_date, CaseReport.report_date <= to_date)
+    hq = _apply_scope(hq, CaseReport.lga_id, lga_joined=True)
+    hq = hq.group_by(LGA.id, LGA.name).order_by(func.sum(CaseReport.new_cases).desc()).limit(10)
     hotspots_by_cases = [{"lga_id": r.id, "lga_name": r.name, "cases": int(r.c or 0)} for r in hq.all()]
 
     # Hotspots by risk (latest score in window)
     rq = db.query(LGA.id, LGA.name, func.max(RiskScore.score).label("s")).join(
         RiskScore, RiskScore.lga_id == LGA.id).filter(
-        RiskScore.score_date >= from_date, RiskScore.score_date <= to_date).group_by(LGA.id, LGA.name).order_by(func.max(RiskScore.score).desc()).limit(10)
+        RiskScore.score_date >= from_date, RiskScore.score_date <= to_date)
+    rq = _apply_scope(rq, RiskScore.lga_id, lga_joined=True)
+    rq = rq.group_by(LGA.id, LGA.name).order_by(func.max(RiskScore.score).desc()).limit(10)
     hotspots_by_risk = [{"lga_id": r.id, "lga_name": r.name, "max_risk": float(r.s or 0)} for r in rq.all()]
 
     # Flood summary
     fq = db.query(func.count(FloodEvent.id), func.coalesce(func.sum(FloodEvent.area_km2), 0.0)).filter(
         FloodEvent.start_date >= from_date, FloodEvent.start_date <= to_date)
+    fq = _apply_scope(fq, FloodEvent.lga_id)
     fcount, farea = fq.first()
     flood_summary = {"event_count": int(fcount or 0), "total_area_km2": float(farea or 0)}
 
     # Alerts fired in period
     aq = db.query(Alert).filter(Alert.created_at >= from_date, Alert.created_at <= to_date + timedelta(days=1))
+    aq = _apply_scope(aq, Alert.lga_id)
     alerts_fired = [{"id": a.id, "severity": a.severity, "message": a.message, "lga_id": a.lga_id} for a in aq.all()]
 
     # Risk distribution (latest per LGA in window)
+    dist_q = db.query(RiskScore.level, func.count(RiskScore.lga_id.distinct())).filter(
+        RiskScore.score_date >= from_date, RiskScore.score_date <= to_date)
+    dist_q = _apply_scope(dist_q, RiskScore.lga_id)
     dist = {"green": 0, "yellow": 0, "red": 0}
-    for r in db.query(RiskScore.level, func.count(RiskScore.lga_id.distinct())).filter(
-        RiskScore.score_date >= from_date, RiskScore.score_date <= to_date).group_by(RiskScore.level).all():
+    for r in dist_q.group_by(RiskScore.level).all():
         if r[0] in dist:
             dist[r[0]] = int(r[1])
 
