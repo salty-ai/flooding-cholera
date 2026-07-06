@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { useState, useRef, useEffect } from 'react';
 import { toPng, toSvg } from 'html-to-image';
 import { showToast } from '../common/Toast';

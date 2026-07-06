@@ -1,18 +1,21 @@
-import { useState, Suspense, lazy } from 'react';
+import { useState, Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ToastProvider } from './components/common/Toast';
+import { ToastProvider, showToast } from './components/common/Toast';
 import { ErrorBoundary } from './components/common/ErrorBoundary';
 import { useAuthStore } from './store/authStore';
+import { useAgentStore } from './store/agentStore';
 import LoginScreen from './components/Auth/LoginScreen';
 import MainLayout from './components/Layout/MainLayout';
 
+// Lazy load heavy components
 // Lazy load heavy components
 const ReportsView = lazy(() => import('./components/Dashboard/ReportsView'));
 const AlertsPanel = lazy(() => import('./components/Alerts/AlertsPanel'));
 const SatellitePanel = lazy(() => import('./components/Satellite/SatellitePanel'));
 const DataUpload = lazy(() => import('./components/Upload/DataUpload'));
 const LGAReportPage = lazy(() => import('./components/LGADetail/LGAReportPage'));
+const AgentExplorerView = lazy(() => import('./components/Agent/AgentExplorerView'));
 const CorrelationView = lazy(() => import('./components/Analytics/CorrelationView'));
 
 // Create React Query client
@@ -26,7 +29,7 @@ const queryClient = new QueryClient({
   },
 });
 
-export type TabId = 'dashboard' | 'map' | 'reports' | 'alerts' | 'satellite' | 'settings' | 'correlation';
+export type TabId = 'dashboard' | 'map' | 'reports' | 'alerts' | 'satellite' | 'settings' | 'agent-ui' | 'correlation';
 
 export function LoadingFallback() {
   return (
@@ -47,6 +50,7 @@ function routeToTab(pathname: string): TabId {
   if (pathname === '/alerts') return 'alerts';
   if (pathname === '/satellite') return 'satellite';
   if (pathname === '/settings') return 'settings';
+  if (pathname === '/agent-explorer') return 'agent-ui';
   if (pathname === '/correlation') return 'correlation';
   return 'dashboard';
 }
@@ -54,6 +58,7 @@ function routeToTab(pathname: string): TabId {
 // Map tab to route
 function tabToRoute(tab: TabId): string {
   if (tab === 'dashboard') return '/';
+  if (tab === 'agent-ui') return '/agent-explorer';
   return `/${tab}`;
 }
 
@@ -62,6 +67,21 @@ function MainAppContent() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabId>(() => routeToTab(location.pathname));
   const { isAuthenticated, login } = useAuthStore();
+  const { hasNewUiNotification, setHasNewUiNotification } = useAgentStore();
+
+  // Sync activeTab with route changes
+  useEffect(() => {
+    setActiveTab(routeToTab(location.pathname));
+  }, [location.pathname]);
+
+  // Auto-redirect to Agent Explorer when a new UI is generated
+  useEffect(() => {
+    if (hasNewUiNotification) {
+      setHasNewUiNotification(false);
+      navigate('/agent-explorer');
+      showToast.success('Interactive Dashboard generated! Switching view to Agent Explorer.');
+    }
+  }, [hasNewUiNotification, navigate, setHasNewUiNotification]);
 
   // Handle tab change with navigation
   const handleTabChange = (tab: TabId) => {
@@ -100,6 +120,7 @@ function MainAppContent() {
                   <Route path="/alerts" element={<AlertsPanel />} />
                   <Route path="/satellite" element={<SatellitePanel />} />
                   <Route path="/settings" element={<DataUpload />} />
+                  <Route path="/agent-explorer" element={<AgentExplorerView />} />
                   <Route path="/correlation" element={<CorrelationView />} />
                 </Routes>
               </Suspense>

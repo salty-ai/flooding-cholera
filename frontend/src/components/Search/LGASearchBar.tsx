@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLgas } from '../../hooks/useApi';
 import type { LGA, RiskLevel } from '../../types';
@@ -75,19 +75,39 @@ export default function LGASearchBar({
   const navigate = useNavigate();
   
   const { data: lgasData } = useLgas();
-  const lgas = lgasData?.lgas || [];
 
   // Filter and sort LGAs based on fuzzy matching
-  const suggestions = query.length > 0
-    ? lgas
-        .map((lga) => ({
-          ...lga,
-          ...fuzzyMatch(lga.name, query),
-        }))
-        .filter((lga) => lga.match)
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 8)
-    : [];
+  const suggestions = useMemo(() => {
+    const lgas = lgasData?.lgas || [];
+    return query.length > 0
+      ? lgas
+          .map((lga) => ({
+            ...lga,
+            ...fuzzyMatch(lga.name, query),
+          }))
+          .filter((lga) => lga.match)
+          .sort((a, b) => b.score - a.score)
+          .slice(0, 8)
+      : [];
+  }, [lgasData, query]);
+
+  // Reset highlighted index when suggestions change
+  useEffect(() => {
+    setHighlightedIndex(0);
+  }, [suggestions.length]);
+
+  const handleSelect = useCallback((lga: LGAWithRisk) => {
+    setQuery('');
+    setIsOpen(false);
+    
+    if (onSelect) {
+      onSelect(lga);
+    }
+    
+    if (navigateOnSelect) {
+      navigate(`/lga/${lga.id}`);
+    }
+  }, [onSelect, navigateOnSelect, navigate]);
 
   // Handle keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
@@ -120,25 +140,7 @@ export default function LGASearchBar({
         inputRef.current?.blur();
         break;
     }
-  }, [isOpen, suggestions, highlightedIndex]);
-
-  const handleSelect = (lga: LGAWithRisk) => {
-    setQuery('');
-    setIsOpen(false);
-    
-    if (onSelect) {
-      onSelect(lga);
-    }
-    
-    if (navigateOnSelect) {
-      navigate(`/lga/${lga.id}`);
-    }
-  };
-
-  // Reset highlighted index when suggestions change
-  useEffect(() => {
-    setHighlightedIndex(0);
-  }, [suggestions.length]);
+  }, [isOpen, suggestions, highlightedIndex, handleSelect]);
 
   // Close dropdown when clicking outside
   useEffect(() => {

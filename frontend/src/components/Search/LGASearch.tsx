@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useLgas } from '../../hooks/useApi';
 import { useAppStore } from '../../store/appStore';
 import type { LGA } from '../../types';
@@ -11,7 +11,7 @@ export default function LGASearch() {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { data, isLoading } = useLgas();
-  const lgas = data?.lgas || [];
+  const lgas = useMemo(() => data?.lgas || [], [data]);
   const { setSelectedLGA, setSelectedLGAId, selectedLGA } = useAppStore();
 
   useEffect(() => {

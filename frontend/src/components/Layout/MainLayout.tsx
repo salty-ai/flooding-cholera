@@ -25,7 +25,7 @@ export default function MainLayout({ activeTab, onTabChange, children }: MainLay
   const { user, logout } = useAuthStore();
   const { data: alerts } = useAlerts();
   const { selectedLGAId } = useAppStore();
-  const { sidebarOpen, setSidebarOpen, consoleOpen } = useAgentStore();
+  const { sidebarOpen, setSidebarOpen, consoleOpen, hasNewUiNotification, setHasNewUiNotification } = useAgentStore();
 
   const criticalAlerts = alerts?.filter(a => a.severity === 'critical').length || 0;
 
@@ -33,11 +33,19 @@ export default function MainLayout({ activeTab, onTabChange, children }: MainLay
     { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
     { id: 'map', label: 'Map View', icon: 'map' },
     { id: 'reports', label: 'Reports', icon: 'description' },
+    { id: 'correlation', label: 'Correlation', icon: 'insights' },
     { id: 'alerts', label: 'Alerts', icon: 'notifications_active', badge: criticalAlerts > 0 ? criticalAlerts : undefined },
     { id: 'satellite', label: 'Satellite', icon: 'satellite_alt' },
-    { id: 'correlation', label: 'Correlation', icon: 'insights' },
+    { id: 'agent-ui', label: 'Agent Explorer', icon: 'extension', badge: hasNewUiNotification ? 1 : undefined },
     { id: 'settings', label: 'Settings', icon: 'settings' },
   ];
+
+  const handleItemClick = (id: TabId) => {
+    if (id === 'agent-ui') {
+      setHasNewUiNotification(false);
+    }
+    onTabChange(id);
+  };
 
   return (
     <div className="flex h-screen w-full bg-[#f6f7f8] font-display overflow-hidden">
@@ -61,7 +69,7 @@ export default function MainLayout({ activeTab, onTabChange, children }: MainLay
               {navItems.map((item) => (
                 <button
                   key={item.id}
-                  onClick={() => onTabChange(item.id)}
+                  onClick={() => handleItemClick(item.id)}
                   className={`flex items-center justify-between px-3 py-2.5 rounded-lg transition-colors w-full text-left ${
                     activeTab === item.id
                       ? 'bg-primary/10 text-primary'
@@ -119,12 +127,12 @@ export default function MainLayout({ activeTab, onTabChange, children }: MainLay
       <main className="flex flex-1 flex-col overflow-hidden relative min-w-0">
         {/* Top Header */}
         <header className="flex h-16 items-center justify-between border-b border-[#e6e8eb] bg-white px-6 flex-shrink-0 z-10">
-          <div className="flex items-center gap-3">
-            <div className="size-8 text-primary flex items-center justify-center bg-primary/20 rounded-lg">
+          <div className="flex items-center gap-3 flex-shrink-0">
+            <div className="size-8 text-primary flex items-center justify-center bg-primary/20 rounded-lg flex-shrink-0">
               <span className="material-symbols-outlined filled" style={{ fontSize: '20px' }}>health_and_safety</span>
             </div>
-            <h2 className="text-lg font-bold tracking-tight text-[#111518]">Cholera Surveillance System</h2>
-            <span className="text-sm text-[#637588] hidden md:block">• Cross River State</span>
+            <h2 className="text-lg font-bold tracking-tight text-[#111518] whitespace-nowrap">Cholera Surveillance System</h2>
+            <span className="text-sm text-[#637588] hidden lg:block flex-shrink-0">• Cross River State</span>
           </div>
           <div className="flex items-center gap-4">
             {/* Search */}
