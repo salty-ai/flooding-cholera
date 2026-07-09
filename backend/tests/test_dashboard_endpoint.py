@@ -19,3 +19,38 @@ def test_dashboard_summary_has_v2_fields():
         "applied_window_start", "applied_window_end", "max_data_date",
     ):
         assert key in body, f"missing field: {key}"
+
+
+def test_dashboard_explicit_date_window():
+    """Explicit start/end dates are reflected in applied_window."""
+    response = client.get(
+        "/api/lgas/dashboard",
+        params={"start_date": "2024-01-01", "end_date": "2024-12-31"},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["applied_window_start"] == "2024-01-01"
+    assert body["applied_window_end"] == "2024-12-31"
+
+
+def test_dashboard_latest_available_default():
+    """With no dates, applied_window_end == max_data_date (latest-available)."""
+    response = client.get("/api/lgas/dashboard")
+    assert response.status_code == 200
+    body = response.json()
+    # If there is any case data, the default window ends at max_data_date.
+    if body["max_data_date"] is not None:
+        assert body["applied_window_end"] == body["max_data_date"]
+    else:
+        # No data at all: window fields are null, counts are zero.
+        assert body["applied_window_start"] is None
+        assert body["total_cases"] == 0
+
+
+def test_dashboard_rejects_bad_dates():
+    """Invalid date strings return 422."""
+    response = client.get(
+        "/api/lgas/dashboard",
+        params={"start_date": "not-a-date"},
+    )
+    assert response.status_code == 422

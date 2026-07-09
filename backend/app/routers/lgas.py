@@ -159,22 +159,46 @@ def get_lgas_geojson(
 
 @router.get("/dashboard", response_model=DashboardSummary)
 @limiter.limit("60/minute")
-def get_dashboard_summary(request: Request, db: Session = Depends(get_db)):
-    """Get dashboard summary statistics."""
+def get_dashboard_summary(
+    request: Request,
+    start_date: Optional[date] = Query(None, description="Window start (ISO)"),
+    end_date: Optional[date] = Query(None, description="Window end (ISO)"),
+    db: Session = Depends(get_db),
+):
+    """Get dashboard summary statistics over a date window.
+
+    With no params, defaults to the latest-available 30-day window
+    (ending at the most recent CaseReport.report_date).
+    """
+    # Resolve the date window (latest-available default)
+    max_report_date = db.query(func.max(CaseReport.report_date)).scalar()
+    if end_date is not None:
+        window_end = end_date
+    else:
+        window_end = max_report_date  # may be None if no case data
+
+    if start_date is not None:
+        window_start = start_date
+    elif window_end is not None:
+        window_start = window_end - timedelta(days=30)
+    else:
+        window_start = None
+
     # Count LGAs
     total_lgas = db.query(func.count(LGA.id)).scalar()
 
-    # Get total cases and deaths (last 30 days)
-    thirty_days_ago = date.today() - timedelta(days=30)
-    case_stats = db.query(
-        func.sum(CaseReport.new_cases),
-        func.sum(CaseReport.deaths)
-    ).filter(CaseReport.report_date >= thirty_days_ago).first()
-
+    # Cases/deaths over the resolved window
+    case_q = db.query(func.sum(CaseReport.new_cases), func.sum(CaseReport.deaths))
+    if window_start is not None and window_end is not None:
+        case_q = case_q.filter(
+            CaseReport.report_date >= window_start,
+            CaseReport.report_date <= window_end,
+        )
+    case_stats = case_q.first()
     total_cases = case_stats[0] or 0
     total_deaths = case_stats[1] or 0
 
-    # Get latest risk levels count
+    # Latest risk levels count (unchanged logic)
     subquery = (
         db.query(
             RiskScore.lga_id,
@@ -198,13 +222,18 @@ def get_dashboard_summary(request: Request, db: Session = Depends(get_db)):
     medium_risk = sum(1 for rs in latest_scores if rs.level == "yellow")
     low_risk = sum(1 for rs in latest_scores if rs.level == "green")
 
-    # Average rainfall last 7 days
-    seven_days_ago = date.today() - timedelta(days=7)
-    avg_rainfall = db.query(
-        func.avg(EnvironmentalData.rainfall_mm)
-    ).filter(
-        EnvironmentalData.observation_date >= seven_days_ago
-    ).scalar() or 0.0
+    # Average rainfall over latest-available 7d (relative to window_end, not today)
+    rain_end = window_end or date.today()
+    rain_start = rain_end - timedelta(days=7)
+    avg_rainfall = (
+        db.query(func.avg(EnvironmentalData.rainfall_mm))
+        .filter(
+            EnvironmentalData.observation_date >= rain_start,
+            EnvironmentalData.observation_date <= rain_end,
+        )
+        .scalar()
+        or 0.0
+    )
 
     return DashboardSummary(
         total_lgas=total_lgas,
@@ -214,7 +243,13 @@ def get_dashboard_summary(request: Request, db: Session = Depends(get_db)):
         lgas_medium_risk=medium_risk,
         lgas_low_risk=low_risk,
         avg_rainfall_7day=round(avg_rainfall, 2),
-        last_updated=date.today()
+        last_updated=max_report_date,  # real max data date, not today
+        active_alerts_count=0,  # filled in Task 3
+        alert_level="green",    # filled in Task 3
+        flood_events_count=0,   # filled in Task 3
+        applied_window_start=window_start,
+        applied_window_end=window_end,
+        max_data_date=max_report_date,
     )
 
 
