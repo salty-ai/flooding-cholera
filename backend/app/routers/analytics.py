@@ -164,7 +164,11 @@ def get_all_risk_scores(
             "recent_deaths": rs.recent_deaths,
             "rainfall_mm": rs.rainfall_mm,
             "flood_score": rs.flood_score,
-            "case_score": rs.case_score
+            "case_score": rs.case_score,
+            "flood_event_score": rs.flood_event_score,
+            "recent_flood_events": rs.recent_flood_events,
+            "vulnerability_score": rs.vulnerability_score,
+            "algorithm_version": rs.algorithm_version,
         }
         for rs, lga_name in scores
     ]
