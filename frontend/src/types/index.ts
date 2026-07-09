@@ -200,3 +200,24 @@ export interface WeeklySummary {
     rainfall: number;
   }>;
 }
+
+export interface FloodEvent {
+  id: number;
+  uuid: string;
+  lga_id: number | null;
+  lga_name: string | null;
+  start_date: string | null;
+  end_date: string | null;
+  duration_days: number | null;
+  area_km2: number | null;
+  created_at: string | null;
+}
+
+export interface AlertStats {
+  total_active: number;
+  by_severity: { critical: number; warning: number; info: number };
+  by_level: { red: number; yellow: number; green: number };
+  unacknowledged: number;
+  acknowledged: number;
+  by_type: Record<string, number>;
+}

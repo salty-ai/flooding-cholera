@@ -11,6 +11,8 @@ import type {
   SatelliteData,
   Alert,
   WeeklySummary,
+  FloodEvent,
+  AlertStats,
 } from '../types';
 
 const api = axios.create({
@@ -60,8 +62,21 @@ export const apiService = {
   },
 
   // Dashboard
-  getDashboardSummary: async (): Promise<DashboardSummary> => {
-    const response = await api.get('/lgas/dashboard');
+  getDashboardSummary: async (start?: string | null, end?: string | null): Promise<DashboardSummary> => {
+    const params: Record<string, string> = {};
+    if (start) params.start_date = start;
+    if (end) params.end_date = end;
+    const response = await api.get('/lgas/dashboard', { params });
+    return response.data;
+  },
+
+  getFloodEvents: async (params?: { lga_id?: number; start_date?: string; end_date?: string; limit?: number }): Promise<FloodEvent[]> => {
+    const response = await api.get('/flood-events', { params });
+    return response.data;
+  },
+
+  getAlertStats: async (): Promise<AlertStats> => {
+    const response = await api.get('/alerts/stats/summary');
     return response.data;
   },
 
@@ -243,12 +258,28 @@ export function useGeojson(date?: string) {
   });
 }
 
-export function useDashboard() {
+export function useDashboard(start?: string | null, end?: string | null) {
   return useQuery({
-    queryKey: queryKeys.dashboard,
-    queryFn: apiService.getDashboardSummary,
+    queryKey: ['dashboard', start ?? null, end ?? null],
+    queryFn: () => apiService.getDashboardSummary(start, end),
     staleTime: 2 * 60 * 1000, // 2 minutes
     refetchInterval: false, // Will be controlled by auto-refresh setting
+  });
+}
+
+export function useFloodEvents(params?: { lga_id?: number; start_date?: string; end_date?: string; limit?: number }) {
+  return useQuery({
+    queryKey: ['flood-events', params ?? null],
+    queryFn: () => apiService.getFloodEvents(params),
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+export function useAlertStats() {
+  return useQuery({
+    queryKey: ['alerts', 'stats'],
+    queryFn: apiService.getAlertStats,
+    staleTime: 60 * 1000,
   });
 }
 
