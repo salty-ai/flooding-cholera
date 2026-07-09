@@ -61,6 +61,9 @@ export interface RiskScore {
   rainfall_score?: number;
   case_score?: number;
   vulnerability_score?: number;
+  flood_event_score?: number;
+  recent_flood_events?: number;
+  algorithm_version?: string;
   recent_cases?: number;
   recent_deaths?: number;
   rainfall_mm?: number;
@@ -117,7 +120,13 @@ export interface DashboardSummary {
   lgas_medium_risk: number;
   lgas_low_risk: number;
   avg_rainfall_7day: number;
-  last_updated: string;
+  last_updated: string | null;
+  active_alerts_count: number;
+  alert_level: 'green' | 'yellow' | 'red';
+  flood_events_count: number;
+  applied_window_start: string | null;
+  applied_window_end: string | null;
+  max_data_date: string | null;
 }
 
 export interface UploadResponse {

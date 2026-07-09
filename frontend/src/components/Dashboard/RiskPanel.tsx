@@ -130,7 +130,7 @@ export default function RiskPanel() {
         />
         <StatCard
           title="Last Updated"
-          value={new Date(summary.last_updated).toLocaleDateString()}
+          value={summary.last_updated ? new Date(summary.last_updated).toLocaleDateString() : '—'}
           subtitle="Data refresh"
           color="#6b7280"
         />
