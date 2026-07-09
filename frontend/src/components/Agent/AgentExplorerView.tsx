@@ -24,6 +24,164 @@ const dataPinIcon = new L.Icon({
   popupAnchor: [0, -30],
 });
 
+// Chart widget extracted into its own component so useMemo stays at the top
+// level of a component (calling hooks inside a .map() callback violates the
+// rules of hooks).
+function ChartWidget({
+  widget,
+  filteredDataset,
+  span,
+}: {
+  widget: any;
+  filteredDataset: any[];
+  span: number;
+}) {
+  const { chartType, xAxisKey, series } = widget.config;
+
+  // Group and aggregate data dynamically to prevent duplicate x-axis labels
+  const chartData = useMemo(() => {
+    const groups: Record<string, any> = {};
+    filteredDataset.forEach((row) => {
+      const groupVal = String(row[xAxisKey] || 'N/A');
+      if (!groups[groupVal]) {
+        groups[groupVal] = { [xAxisKey]: groupVal };
+        series.forEach((s: any) => {
+          const plotKey = s.key === xAxisKey ? `${s.key}_count` : s.key;
+          groups[groupVal][plotKey] = 0;
+        });
+        groups[groupVal]._count = 0;
+      }
+      groups[groupVal]._count += 1;
+
+      series.forEach((s: any) => {
+        const plotKey = s.key === xAxisKey ? `${s.key}_count` : s.key;
+        const val = row[s.key];
+        const numVal = Number(val);
+
+        if (s.key === xAxisKey || isNaN(numVal)) {
+          groups[groupVal][plotKey] += 1;
+        } else {
+          groups[groupVal][plotKey] += numVal;
+        }
+      });
+    });
+
+    // Apply average aggregation logic for risk/score numeric series
+    return Object.values(groups).map((group: any) => {
+      series.forEach((s: any) => {
+        const plotKey = s.key === xAxisKey ? `${s.key}_count` : s.key;
+        const isAverageVariable =
+          s.key.toLowerCase().includes('risk') ||
+          s.key.toLowerCase().includes('score') ||
+          s.key.toLowerCase().includes('avg') ||
+          s.key.toLowerCase().includes('dehydration') ||
+          s.key.toLowerCase().includes('age');
+
+        if (s.key !== xAxisKey && isAverageVariable && typeof group[plotKey] === 'number') {
+          group[plotKey] = Number((group[plotKey] / group._count).toFixed(1));
+        }
+      });
+      return group;
+    }).sort((a: any, b: any) => {
+      const valA = a[xAxisKey];
+      const valB = b[xAxisKey];
+      const numA = Number(valA);
+      const numB = Number(valB);
+      if (!isNaN(numA) && !isNaN(numB)) {
+        return numA - numB;
+      }
+      return String(valA).localeCompare(String(valB), undefined, { numeric: true, sensitivity: 'base' });
+    });
+  }, [filteredDataset, xAxisKey, series]);
+
+  return (
+    <div className={`col-span-12 lg:col-span-${span} bg-white border border-[#e6e8eb] rounded-xl p-5 shadow-sm flex flex-col`}>
+      <div className="flex justify-between items-center mb-5 border-b border-[#f0f2f5] pb-3">
+        <h3 className="font-bold text-[#111518] text-sm">{widget.title}</h3>
+        <div className="flex gap-3 text-[10px] font-semibold text-[#637588]">
+          {series.map((s: any) => {
+            const labelName = s.key === xAxisKey ? 'Total Cases' : s.key.replace('_', ' ');
+            return (
+              <div key={s.key} className="flex items-center gap-1.5 capitalize">
+                <span className="size-2 rounded-full" style={{ backgroundColor: s.color }} />
+                {labelName}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+      <div className="h-[260px] w-full flex-none">
+        <ResponsiveContainer width="100%" height="100%">
+          <ComposedChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" />
+            <XAxis
+              dataKey={xAxisKey}
+              tick={{ fontSize: 10, fill: '#637588' }}
+              axisLine={{ stroke: '#e6e8eb' }}
+              tickLine={false}
+            />
+            <YAxis
+              tick={{ fontSize: 10, fill: '#637588' }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: 'white',
+                border: '1px solid #e6e8eb',
+                borderRadius: '8px',
+                fontSize: '11px',
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+              }}
+            />
+            <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
+            {series.map((s: any) => {
+              const plotKey = s.key === xAxisKey ? `${s.key}_count` : s.key;
+              const labelName = s.key === xAxisKey ? 'Count' : s.key.replace('_', ' ');
+              const type = s.type || chartType;
+              if (type === 'bar') {
+                return (
+                  <Bar
+                    key={s.key}
+                    dataKey={plotKey}
+                    fill={s.color}
+                    name={labelName}
+                    radius={[4, 4, 0, 0]}
+                  />
+                );
+              } else if (type === 'area') {
+                return (
+                  <Area
+                    key={s.key}
+                    type="monotone"
+                    dataKey={plotKey}
+                    fill={`${s.color}25`}
+                    stroke={s.color}
+                    strokeWidth={2}
+                    name={labelName}
+                  />
+                );
+              } else {
+                return (
+                  <Line
+                    key={s.key}
+                    type="monotone"
+                    dataKey={plotKey}
+                    stroke={s.color}
+                    strokeWidth={2.5}
+                    dot={{ fill: s.color, strokeWidth: 0, r: 3 }}
+                    name={labelName}
+                  />
+                );
+              }
+            })}
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+    </div>
+  );
+}
+
 export default function AgentExplorerView() {
   const { generatedUiSpec, uploadedDataset, setGeneratedUiSpec, setUploadedDataset } = useAgentStore();
   const [searchTerm, setSearchTerm] = useState('');
@@ -59,7 +217,7 @@ export default function AgentExplorerView() {
         })
         .catch((err) => console.error('Error restoring dashboard:', err));
     }
-  }, []);
+  }, [generatedUiSpec, setGeneratedUiSpec, setUploadedDataset]);
 
   // Generate Mock Data for Demo
   const handleLoadDemo = () => {
@@ -457,149 +615,13 @@ export default function AgentExplorerView() {
 
           // ── Chart Widget ─────────────────────────────────────────────────
           if (widget.type === 'chart') {
-            const { chartType, xAxisKey, series } = widget.config;
-
-            // Group and aggregate data dynamically to prevent duplicate x-axis labels
-            const chartData = useMemo(() => {
-              const groups: Record<string, any> = {};
-              filteredDataset.forEach((row) => {
-                const groupVal = String(row[xAxisKey] || 'N/A');
-                if (!groups[groupVal]) {
-                  groups[groupVal] = { [xAxisKey]: groupVal };
-                  series.forEach((s: any) => {
-                    const plotKey = s.key === xAxisKey ? `${s.key}_count` : s.key;
-                    groups[groupVal][plotKey] = 0;
-                  });
-                  groups[groupVal]._count = 0;
-                }
-                groups[groupVal]._count += 1;
-                
-                series.forEach((s: any) => {
-                  const plotKey = s.key === xAxisKey ? `${s.key}_count` : s.key;
-                  const val = row[s.key];
-                  const numVal = Number(val);
-                  
-                  if (s.key === xAxisKey || isNaN(numVal)) {
-                    groups[groupVal][plotKey] += 1;
-                  } else {
-                    groups[groupVal][plotKey] += numVal;
-                  }
-                });
-              });
-
-              // Apply average aggregation logic for risk/score numeric series
-              return Object.values(groups).map((group: any) => {
-                series.forEach((s: any) => {
-                  const plotKey = s.key === xAxisKey ? `${s.key}_count` : s.key;
-                  const isAverageVariable = 
-                    s.key.toLowerCase().includes('risk') || 
-                    s.key.toLowerCase().includes('score') || 
-                    s.key.toLowerCase().includes('avg') ||
-                    s.key.toLowerCase().includes('dehydration') ||
-                    s.key.toLowerCase().includes('age');
-                    
-                  if (s.key !== xAxisKey && isAverageVariable && typeof group[plotKey] === 'number') {
-                    group[plotKey] = Number((group[plotKey] / group._count).toFixed(1));
-                  }
-                });
-                return group;
-              }).sort((a: any, b: any) => {
-                const valA = a[xAxisKey];
-                const valB = b[xAxisKey];
-                const numA = Number(valA);
-                const numB = Number(valB);
-                if (!isNaN(numA) && !isNaN(numB)) {
-                  return numA - numB;
-                }
-                return String(valA).localeCompare(String(valB), undefined, { numeric: true, sensitivity: 'base' });
-              });
-            }, [filteredDataset, xAxisKey, series]);
-
             return (
-              <div key={key} className={`col-span-12 lg:col-span-${span} bg-white border border-[#e6e8eb] rounded-xl p-5 shadow-sm flex flex-col`}>
-                <div className="flex justify-between items-center mb-5 border-b border-[#f0f2f5] pb-3">
-                  <h3 className="font-bold text-[#111518] text-sm">{widget.title}</h3>
-                  <div className="flex gap-3 text-[10px] font-semibold text-[#637588]">
-                    {series.map((s: any) => {
-                      const labelName = s.key === xAxisKey ? 'Total Cases' : s.key.replace('_', ' ');
-                      return (
-                        <div key={s.key} className="flex items-center gap-1.5 capitalize">
-                          <span className="size-2 rounded-full" style={{ backgroundColor: s.color }} />
-                          {labelName}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-                <div className="h-[260px] w-full flex-none">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <ComposedChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#f0f2f5" />
-                      <XAxis
-                        dataKey={xAxisKey}
-                        tick={{ fontSize: 10, fill: '#637588' }}
-                        axisLine={{ stroke: '#e6e8eb' }}
-                        tickLine={false}
-                      />
-                      <YAxis
-                        tick={{ fontSize: 10, fill: '#637588' }}
-                        axisLine={false}
-                        tickLine={false}
-                      />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'white',
-                          border: '1px solid #e6e8eb',
-                          borderRadius: '8px',
-                          fontSize: '11px',
-                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-                        }}
-                      />
-                      <Legend wrapperStyle={{ fontSize: '10px', paddingTop: '10px' }} />
-                      {series.map((s: any) => {
-                        const plotKey = s.key === xAxisKey ? `${s.key}_count` : s.key;
-                        const labelName = s.key === xAxisKey ? 'Count' : s.key.replace('_', ' ');
-                        const type = s.type || chartType;
-                        if (type === 'bar') {
-                          return (
-                            <Bar
-                              key={s.key}
-                              dataKey={plotKey}
-                              fill={s.color}
-                              name={labelName}
-                              radius={[4, 4, 0, 0]}
-                            />
-                          );
-                        } else if (type === 'area') {
-                          return (
-                            <Area
-                              key={s.key}
-                              type="monotone"
-                              dataKey={plotKey}
-                              fill={`${s.color}25`}
-                              stroke={s.color}
-                              strokeWidth={2}
-                              name={labelName}
-                            />
-                          );
-                        } else {
-                          return (
-                            <Line
-                              key={s.key}
-                              type="monotone"
-                              dataKey={plotKey}
-                              stroke={s.color}
-                              strokeWidth={2.5}
-                              dot={{ fill: s.color, strokeWidth: 0, r: 3 }}
-                              name={labelName}
-                            />
-                          );
-                        }
-                      })}
-                    </ComposedChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
+              <ChartWidget
+                key={key}
+                widget={widget}
+                filteredDataset={filteredDataset}
+                span={span}
+              />
             );
           }
 
