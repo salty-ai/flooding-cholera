@@ -8,7 +8,7 @@ from geoalchemy2.shape import to_shape
 from shapely.geometry import mapping
 
 from app.database import get_db
-from app.models import LGA, RiskScore, CaseReport, EnvironmentalData
+from app.models import LGA, RiskScore, CaseReport, EnvironmentalData, Alert, FloodEvent
 from app.schemas import (
     LGAResponse, LGAWithGeometry, LGAListResponse,
     RiskScoreResponse, RiskScoreWithLGA,
@@ -235,6 +235,25 @@ def get_dashboard_summary(
         or 0.0
     )
 
+    # Real alert engine counts
+    active_alerts = db.query(Alert).filter(Alert.is_active == True).all()
+    active_alerts_count = len(active_alerts)
+    if any(a.severity == "critical" for a in active_alerts):
+        alert_level = "red"
+    elif any(a.severity == "warning" for a in active_alerts):
+        alert_level = "yellow"
+    else:
+        alert_level = "green"
+
+    # Flood events overlapping the window
+    flood_q = db.query(func.count(FloodEvent.id))
+    if window_start is not None and window_end is not None:
+        flood_q = flood_q.filter(
+            FloodEvent.start_date <= window_end,
+            FloodEvent.end_date >= window_start,
+        )
+    flood_events_count = flood_q.scalar() or 0
+
     return DashboardSummary(
         total_lgas=total_lgas,
         total_cases=total_cases,
@@ -244,9 +263,9 @@ def get_dashboard_summary(
         lgas_low_risk=low_risk,
         avg_rainfall_7day=round(avg_rainfall, 2),
         last_updated=max_report_date,  # real max data date, not today
-        active_alerts_count=0,  # filled in Task 3
-        alert_level="green",    # filled in Task 3
-        flood_events_count=0,   # filled in Task 3
+        active_alerts_count=active_alerts_count,
+        alert_level=alert_level,
+        flood_events_count=flood_events_count,
         applied_window_start=window_start,
         applied_window_end=window_end,
         max_data_date=max_report_date,

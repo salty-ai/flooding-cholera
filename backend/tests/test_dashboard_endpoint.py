@@ -54,3 +54,26 @@ def test_dashboard_rejects_bad_dates():
         params={"start_date": "not-a-date"},
     )
     assert response.status_code == 422
+
+
+def test_dashboard_alert_and_flood_fields_are_integers():
+    """active_alerts_count and flood_events_count are ints (>= 0)."""
+    response = client.get("/api/lgas/dashboard")
+    body = response.json()
+    assert isinstance(body["active_alerts_count"], int)
+    assert body["active_alerts_count"] >= 0
+    assert isinstance(body["flood_events_count"], int)
+    assert body["flood_events_count"] >= 0
+    assert body["alert_level"] in ("green", "yellow", "red")
+
+
+def test_dashboard_alert_count_matches_db():
+    from app.models import Alert
+    from app.database import SessionLocal
+    db = SessionLocal()
+    try:
+        expected = db.query(Alert).filter(Alert.is_active == True).count()
+    finally:
+        db.close()
+    body = client.get("/api/lgas/dashboard").json()
+    assert body["active_alerts_count"] == expected
