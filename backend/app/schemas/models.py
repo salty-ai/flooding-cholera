@@ -287,7 +287,16 @@ class DashboardSummary(BaseModel):
     lgas_medium_risk: int
     lgas_low_risk: int
     avg_rainfall_7day: float
-    last_updated: datetime
+    last_updated: Optional[datetime] = None
+    # Real alert engine (replaces derived risk-level counts)
+    active_alerts_count: int = 0
+    alert_level: str = "green"
+    # New integration data
+    flood_events_count: int = 0
+    # Date-awareness: the window actually queried
+    applied_window_start: Optional[date] = None
+    applied_window_end: Optional[date] = None
+    max_data_date: Optional[date] = None
 
 
 # ============ Alert Rule Schemas ============
