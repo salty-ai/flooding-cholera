@@ -10,7 +10,7 @@ from slowapi.errors import RateLimitExceeded
 
 from app.config import get_settings
 from app.database import init_db, SessionLocal
-from app.routers import lgas_router, analytics_router, upload_router, satellite_router, alerts_router, facilities_router, agent_router, admin_data_router, reports_router
+from app.routers import lgas_router, analytics_router, upload_router, satellite_router, alerts_router, facilities_router, agent_router, admin_data_router, reports_router, flood_events_router
 from app.services.risk_calculator import RiskCalculator
 from app.exceptions import setup_exception_handlers
 from app.rate_limiter import limiter, rate_limit_exceeded_handler
@@ -202,6 +202,7 @@ app.include_router(facilities_router)
 app.include_router(agent_router)
 app.include_router(admin_data_router)
 app.include_router(reports_router)
+app.include_router(flood_events_router)
 
 
 @app.get("/")
