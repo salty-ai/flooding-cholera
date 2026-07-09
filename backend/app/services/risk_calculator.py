@@ -37,6 +37,17 @@ class RiskCalculator:
     def __init__(self, db: Session):
         self.db = db
 
+    def _latest_data_date(self) -> date:
+        """Most recent CaseReport.report_date, or today if there is no case data.
+
+        Risk is anchored to the latest-available data date (not the wall-clock
+        today) so that the 14-day recent-cases window actually overlaps real
+        data when ingestion lags behind the current date — consistent with the
+        dashboard endpoint's latest-available window.
+        """
+        latest = self.db.query(func.max(CaseReport.report_date)).scalar()
+        return latest or date.today()
+
     def normalize(self, value: float, min_val: float, max_val: float) -> float:
         """Normalize value to 0-1 range."""
         if value is None:
@@ -201,7 +212,7 @@ class RiskCalculator:
 
         v2.0 weights fold in the flood_event_score component.
         """
-        as_of = as_of_date or date.today()
+        as_of = as_of_date or self._latest_data_date()
 
         env = self.get_latest_environmental(lga.id, as_of=as_of)
         ndwi = env.ndwi if env else None
@@ -266,7 +277,7 @@ class RiskCalculator:
         an API-shaped dict. Shared by calculate_all (loop body) and the
         single-LGA recalc endpoint.
         """
-        score_date = score_date or date.today()
+        score_date = score_date or self._latest_data_date()
 
         overall, level, components = self.calculate_for_lga(
             lga, as_of_date=score_date
@@ -342,6 +353,8 @@ class RiskCalculator:
         score_date: Optional[date] = None
     ) -> List[Dict[str, Any]]:
         """Calculate risk scores for all LGAs."""
+        # Resolve the anchor date once so we don't re-query it per LGA.
+        score_date = score_date or self._latest_data_date()
         lgas = self.db.query(LGA).all()
         results = []
 

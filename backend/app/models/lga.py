@@ -12,7 +12,7 @@ class LGA(Base):
     __tablename__ = "lgas"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String(100), unique=True, nullable=False, index=True)
+    name = Column(String(100), nullable=False, index=True)  # not unique: LGA names repeat across states (e.g. Bassa in Kogi & Plateau); pcode is the unique key
     code = Column(String(20), unique=True, nullable=False)
     state = Column(String(100), nullable=True, index=True)
     pcode = Column(String(20), nullable=True, unique=True)
