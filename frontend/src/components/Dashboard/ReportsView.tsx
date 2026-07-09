@@ -71,7 +71,7 @@ function OverviewReport() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-[#e6e8eb] p-4">
           <p className="text-[#637588] text-xs font-medium mb-1">Total LGAs</p>
-          <p className="text-2xl font-bold text-[#111518]">{dashboard?.total_lgas || 18}</p>
+          <p className="text-2xl font-bold text-[#111518]">{dashboard?.total_lgas ?? 0}</p>
         </div>
         <div className="bg-white rounded-xl border border-[#e6e8eb] p-4">
           <p className="text-[#637588] text-xs font-medium mb-1">Cases (30d)</p>
