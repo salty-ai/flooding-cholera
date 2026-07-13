@@ -102,6 +102,11 @@ backend/secrets/
 .claude/
 .agents/
 
+# Visual brainstorming companion mockups
+.superpowers/
+
 # Runtime agent uploads and local data spreadsheets
 backend/data/agent_uploads/
+backend/data/groundsource_*.parquet
+/data/groundsource_*.parquet
 frontend/public/*.xlsx
