@@ -113,7 +113,7 @@ export default function RiskPanel() {
         <StatCard
           title="Total LGAs"
           value={summary.total_lgas}
-          subtitle="Cross River State"
+          subtitle="Federal Republic of Nigeria (774 LGAs)"
           color="#3b82f6"
         />
         <StatCard

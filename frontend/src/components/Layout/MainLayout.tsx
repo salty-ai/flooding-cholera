@@ -132,7 +132,7 @@ export default function MainLayout({ activeTab, onTabChange, children }: MainLay
               <span className="material-symbols-outlined filled" style={{ fontSize: '20px' }}>health_and_safety</span>
             </div>
             <h2 className="text-lg font-bold tracking-tight text-[#111518] whitespace-nowrap">Cholera Surveillance System</h2>
-            <span className="text-sm text-[#637588] hidden lg:block flex-shrink-0">• Cross River State</span>
+            <span className="text-sm text-[#637588] hidden lg:block flex-shrink-0">• Federal Republic of Nigeria (774 LGAs)</span>
           </div>
           <div className="flex items-center gap-4">
             {/* Search */}

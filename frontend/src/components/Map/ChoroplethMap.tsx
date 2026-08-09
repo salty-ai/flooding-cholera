@@ -322,7 +322,7 @@ export default function ChoroplethMap() {
         className="h-full w-full"
         scrollWheelZoom={true}
         style={{ height: '100%', width: '100%' }}
-        aria-label="Cholera risk map of Cross River State"
+        aria-label="Cholera risk map of Nigeria (774 LGAs)"
       >
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'

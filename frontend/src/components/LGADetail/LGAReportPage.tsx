@@ -601,7 +601,7 @@ export default function LGAReportPage() {
                 hour: '2-digit',
                 minute: '2-digit'
               })}</p>
-              <p className="mt-1">Cross River State Cholera Surveillance System</p>
+              <p className="mt-1">Nigeria EO-enabled Environmental Health Surveillance Hub (774 LGAs)</p>
             </div>
           </div>
         )}

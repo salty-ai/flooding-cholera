@@ -17,7 +17,7 @@ export default function MapOnlyView() {
             <span className="material-symbols-outlined text-primary" style={{ fontSize: '24px' }}>map</span>
             <div>
               <h3 className="font-bold text-[#111518] text-sm">
-                {selectedLGA ? selectedLGA.name : 'Cross River State'}
+                {selectedLGA ? selectedLGA.name : 'Nigeria (774 LGAs)'}
               </h3>
               <p className="text-xs text-[#637588]">
                 {selectedLGA ? `Population: ${selectedLGA.population?.toLocaleString() || 'N/A'}` : 'Select an LGA to view details'}
