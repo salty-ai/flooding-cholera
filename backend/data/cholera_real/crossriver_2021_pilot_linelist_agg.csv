@@ -1,0 +1,6 @@
+LGA,State,Year,Cases,Deaths,CFR_Percent,Source
+Yakurr,Cross River,2021,53,0,0.0,"CRS 2021 cholera line-list (culture-confirmed field), NCDC/CRS SMoH"
+Biase,Cross River,2021,10,1,10.0,"CRS 2021 cholera line-list (culture-confirmed field), NCDC/CRS SMoH"
+Calabar Municipal,Cross River,2021,6,0,0.0,"CRS 2021 cholera line-list (culture-confirmed field), NCDC/CRS SMoH"
+Bakassi,Cross River,2021,5,3,60.0,"CRS 2021 cholera line-list (culture-confirmed field), NCDC/CRS SMoH"
+TOTAL,Cross River,2021,74,4,5.4,CRS 2021 cholera line-list
