@@ -33,11 +33,11 @@ _IMG={
  "Figure 7":"/root/paper_figures_gen/fig_national_burden.png",
  "Figure 8":"/root/paper_figures_gen/fig_lag_signal.png",
  "Figure 9":"/root/paper_figures_app/app_alerts.png",
- "Figure 10":"/root/paper_figures_app/app_agent.png",
+ "Figure 10":"/root/paper_figures_app/app_agent_generated.png",
  "Figure 11":"/root/paper_figures_gen/diag_roadmap.png",
 }
 _used=set()
-def figph(t, img=None, width=6.2):
+def figph(t, img=None, width=6.5):
     """Embed a real image centered. img overrides keyword mapping."""
     path=img
     if path is None:
@@ -387,14 +387,17 @@ caption("Figure 8: Exploratory flood–cholera temporal association (illustrativ
 H("4.3 Platform Capabilities",2)
 P("Beyond the epidemiological demonstrations, the platform provides a configurable rule-based alert engine (Figure 9), a "
 "conversational assistant with model-routing hooks and an assisted no-code data-ingestion workflow (Agent Explorer, Figure 10), "
-"and PDF/CSV report export. These are described as implemented software capabilities; their epidemiological performance (alert "
-"sensitivity, geocoding accuracy) requires separate evaluation and is not claimed here.")
+"and PDF/CSV report export. In the deployment used for this study, the assistant was served by Google Gemini through Vertex AI; "
+"Figure 10 shows a dashboard the assistant generated autonomously after ingesting the Cross River pilot dataset, having detected "
+"the LGA, case, death, and case-fatality columns without manual configuration. These are described as implemented software "
+"capabilities; their epidemiological performance (alert sensitivity, geocoding accuracy) requires separate evaluation and is "
+"not claimed here.")
 figph("Figure 9")
 caption("Figure 9: Automated early-warning alert engine — severity and status filters, alert rails, and threshold-rule "
 "management for case-surge, high-risk-score, and recent-flooding triggers.")
 figph("Figure 10")
-caption("Figure 10: Agent Explorer — assisted no-code ingestion of custom CSV/Excel surveillance data, with schema detection "
-"and adaptive dashboard generation via the Surveillance Copilot.")
+caption("Figure 10: Agent Explorer — a dashboard generated autonomously by the Surveillance Copilot (Google Gemini via Vertex AI) "
+"from the uploaded Cross River 2021 line-list, with automatic schema detection of LGA, case, death, and case-fatality fields.")
 
 # ================= 5. DISCUSSION =================
 H("5. Discussion",1)

@@ -11,7 +11,7 @@ from matplotlib import font_manager as fm
 plt.rcParams.update({
     "font.family":"DejaVu Serif","font.size":11,"axes.edgecolor":"#222",
     "axes.linewidth":0.8,"axes.grid":True,"grid.color":"#DDD","grid.linewidth":0.6,
-    "axes.axisbelow":True,"figure.dpi":300,"savefig.dpi":300,
+    "axes.axisbelow":True,"figure.dpi":400,"savefig.dpi":400,
 })
 GREYS=["#111111","#555555","#888888","#AAAAAA","#CCCCCC"]
 

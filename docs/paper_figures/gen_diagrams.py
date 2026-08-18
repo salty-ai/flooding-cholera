@@ -25,7 +25,7 @@ DEFS='<defs><marker id="ah" markerWidth="10" markerHeight="10" refX="8" refY="3"
 def render(name, w, h, body):
     svg=f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">{DEFS}<rect width="{w}" height="{h}" fill="white"/>{body}</svg>'
     open(f"{OUT}/{name}.svg","w").write(svg)
-    cairosvg.svg2png(bytestring=svg.encode(), write_to=f"{OUT}/{name}.png", output_width=w*2, output_height=h*2)
+    cairosvg.svg2png(bytestring=svg.encode(), write_to=f"{OUT}/{name}.png", output_width=w*3, output_height=h*3)
     print("saved",name)
 
 # ============ DIAGRAM 1: 3-TIER SYSTEM ARCHITECTURE (horizontal bands) ============
