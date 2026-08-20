@@ -15,7 +15,9 @@ from app.models import FloodEvent, CaseReport, EnvironmentalData, LGA
 
 logger = logging.getLogger(__name__)
 
-MIN_OVERLAP = 3
+# Six overlapping months is the minimum descriptive threshold. Results below this
+# threshold are explicitly marked insufficient rather than treated as statistics.
+MIN_OVERLAP = 6
 
 
 def _fisher_confidence_interval(r: float, n: int, z_value: float = 1.96):
