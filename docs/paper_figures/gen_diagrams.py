@@ -22,11 +22,12 @@ def band(x,y,w,h,label):
             f'<text x="{x+12}" y="{y+20}" font-family="{FONT}" font-size="12" font-weight="700" fill="#666" letter-spacing="1">{label}</text>')
 DEFS='<defs><marker id="ah" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L8,3 L0,6 Z" fill="#333"/></marker></defs>'
 
-def render(name, w, h, body):
+def render(name, w, h, body, scale=4):
+    # 4x rasterization for print-clear journal figures (vector SVG kept alongside)
     svg=f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="0 0 {w} {h}">{DEFS}<rect width="{w}" height="{h}" fill="white"/>{body}</svg>'
     open(f"{OUT}/{name}.svg","w").write(svg)
-    cairosvg.svg2png(bytestring=svg.encode(), write_to=f"{OUT}/{name}.png", output_width=w*3, output_height=h*3)
-    print("saved",name)
+    cairosvg.svg2png(bytestring=svg.encode(), write_to=f"{OUT}/{name}.png", output_width=w*scale, output_height=h*scale)
+    print("saved",name, f"@ {scale}x")
 
 # ============ DIAGRAM 1: 3-TIER SYSTEM ARCHITECTURE (horizontal bands) ============
 W,H=1180,720

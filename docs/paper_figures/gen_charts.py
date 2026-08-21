@@ -9,9 +9,12 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 from matplotlib import font_manager as fm
 plt.rcParams.update({
-    "font.family":"DejaVu Serif","font.size":11,"axes.edgecolor":"#222",
-    "axes.linewidth":0.8,"axes.grid":True,"grid.color":"#DDD","grid.linewidth":0.6,
-    "axes.axisbelow":True,"figure.dpi":400,"savefig.dpi":400,
+    "font.family":"DejaVu Serif","font.size":12,"axes.edgecolor":"#111",
+    "axes.linewidth":1.0,"axes.grid":True,"grid.color":"#D0D0D0","grid.linewidth":0.7,
+    "axes.axisbelow":True,"figure.dpi":450,"savefig.dpi":450,
+    "axes.titlesize":13,"axes.labelsize":12,"xtick.labelsize":11,"ytick.labelsize":11,
+    "legend.fontsize":10,"savefig.bbox":"tight","savefig.facecolor":"white",
+    "savefig.edgecolor":"none","pdf.fonttype":42,"ps.fonttype":42,
 })
 GREYS=["#111111","#555555","#888888","#AAAAAA","#CCCCCC"]
 
