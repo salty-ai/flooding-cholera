@@ -510,13 +510,20 @@ export default function AgentSidebar() {
   ];
 
   return (
-    <aside
-      className={`flex flex-col border-l border-[#e6e8eb] bg-white flex-shrink-0 z-20 relative ${
-        isDragging ? 'select-none' : ''
-      }`}
-      style={{ width: `${width}px` }}
-      {...getRootProps()}
-    >
+    <>
+      {/* Mobile Backdrop */}
+      <div
+        className="fixed inset-0 bg-black/50 z-40 md:hidden backdrop-blur-sm transition-opacity"
+        onClick={() => setSidebarOpen(false)}
+      />
+
+      <aside
+        className={`fixed inset-y-0 right-0 z-50 md:z-20 md:relative flex flex-col border-l border-[#e6e8eb] bg-white flex-shrink-0 shadow-2xl md:shadow-none transition-all ${
+          isDragging ? 'select-none' : ''
+        }`}
+        style={{ width: typeof window !== 'undefined' && window.innerWidth < 768 ? '100%' : `${width}px` }}
+        {...getRootProps()}
+      >
       {/* Resizer Handle */}
       <div
         className={`absolute top-0 left-0 bottom-0 w-1 cursor-col-resize z-50 transition-colors hover:bg-primary/45 ${
@@ -770,5 +777,6 @@ export default function AgentSidebar() {
         </p>
       </div>
     </aside>
+  </>
   );
 }

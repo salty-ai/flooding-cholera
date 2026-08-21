@@ -20,14 +20,18 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      isAuthenticated: false,
-      user: null,
+      isAuthenticated: true,
+      user: {
+        email: 'yaks@nasrda.gov.ng',
+        role: 'State Epidemiologist',
+        name: 'Yakubu Tanimu Umar',
+        id: 1,
+      },
       login: (email: string, role: UserRole) => {
-        // Extract name from email (simple demo logic)
         const name = email.split('@')[0].replace(/[._]/g, ' ');
         const capitalizedName = name
           .split(' ')
-          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
           .join(' ');
 
         set({

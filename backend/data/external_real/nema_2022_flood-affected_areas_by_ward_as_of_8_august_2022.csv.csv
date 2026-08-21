@@ -1,0 +1,154 @@
+State,LGA,Ward,DisasterType
+Borno,Bama,Banki,Flood
+Borno,Monguno,Monguno,Flood
+Yobe,Gubja,Ngurbuwa,Flood
+Yobe,Gubja,Buni Yadi,Flood
+Yobe,Gubja,Buni Gari,Flood
+Adamawa,Madagali,Mayo Wandu,Flood
+Adamawa,Madagali,Wuro Ngayandi,Flood
+Adamawa,Song,Kilange Funa,Flood
+Adamawa,Song,Gudu Mboi,Windstorm
+Adamawa,Song,Kolere,Windstorm
+Adamawa,Song,Gada,Flood
+Adamawa,Yola South,Mbamba,Flood
+Adamawa,Yola South,Mbamoi,Flood
+Adamawa,Yola South,Yolde Kohi,Flood
+Adamawa,Yola South,Makama A,Flood
+Adamawa,Yola South,Bole Yolde Pate,Flood
+Adamawa,Yola South,Damere Polo,Flood
+Adamawa,Yola North,Jambutu,Flood
+Adamawa,Girei,Girei 1,Flood
+Adamawa,Girei,Girei 2,Flood
+Adamawa,Girei,Damare,Flood
+Adamawa,Girei,Njobbore,Flood
+Adamawa,Girei,Modire,Flood
+Adamawa,Toungo,Toungo 1,Flood
+Adamawa,Toungo,Toungo 2,Flood
+Adamawa,Toungo,Toungo 3,Flood
+Adamawa,Toungo,Kiri 1,Flood
+Adamawa,Toungo,Kiri 2,Flood
+Adamawa,Ganye,Sangassumi,Flood
+Adamawa,Ganye,Bakinkogi,Flood
+Adamawa,Ganye,Luggere,Flood
+Adamawa,Ganye,Shekabara,Flood
+Adamawa,Ganye,Gangkomen,Flood
+Adamawa,Ganye,Gamu,Flood
+Adamawa,Hong,Hong,Flood
+Adamawa,Fufore,Farang,Flood
+Adamawa,Fufore,Malabu,Flood
+Adamawa,Fufore,Kafarbu,Windstorm
+Adamawa,Fufore,Wuro Bokki,Flood
+Adamawa,Fufore,Daware,Flood
+Adamawa,Fufore,Daware Mango,Flood
+Adamawa,Fufore,Fufore,Flood
+Adamawa,Fufore,Chikito,Windstorm
+Adamawa,Fufore,Karlahi,Flood
+Adamawa,Fufore,Beti,Windstorm
+Adamawa,Fufore,Wuro Bokki,Flood
+Adamawa,Fufore,Karlahi,Flood
+Adamawa,Fufore,Gurin,Windstorm
+Adamawa,Fufore,Fulbere,Flood
+Adamawa,Fufore,Nbele,Flood
+Adamawa,Fufore,Fufore,Flood
+Adamawa,Fufore,Tongo,Flood
+Adamawa,Jada,Koma 2,Windstorm
+Adamawa,Jada,Danaba,Windstorm
+Adamawa,Jada,Leko,Flood
+Adamawa,Jada,Mapeo,Flood
+Yobe,Gulani,Gumsa,Windstorm
+Yobe,Gulani,Tettaba,Windstorm
+Yobe,Gulani,Bumsa,Windstorm
+Yobe,Gulani,Gulani,Windstorm
+Yobe,Nangere,Watinani,Windstorm
+Yobe,Gujba,Wagir,Windstorm
+Yobe,Gulani,Bularafa,Windstorm
+Yobe,Gulani,Ruhu,Windstorm
+Yobe,Bursari,Dapchi,Windstorm
+Yobe,Damaturu,Maisandari,Windstorm
+Yobe,Damaturu,Maisandari,Windstorm
+Yobe,Damaturu,Gambir,Windstorm
+Yobe,Damaturu,Nayinawa,Windstorm
+Yobe,Damaturu,Bindigari / Pawari,Windstorm
+Yobe,Damaturu,Gwange,Windstorm
+Yobe,Damaturu, Damaturu Central,Windstorm
+Yobe,Damaturu,Damaturu Central,Windstorm
+Yobe,Gujba,Gujba,Windstorm
+Yobe,Damaturu,Bindigari/Pawari,Windstorm
+Yobe,Damaturu,Nayinawa,Windstorm
+Yobe,Damaturu, Gwange,Windstorm
+Yobe,Damaturu, Damaturu Central ,Windstorm
+Yobe,Damaturu,Maisandari.,Windstorm
+Yobe,Karasuwa,Karasuwa Galu,Windstorm
+Yobe,Karasuwa,Gasma,Windstorm
+Yobe,Fune,Damagum,Flood
+Yobe,Gujba,Goniri,Windstorm
+Yobe,Machina,Dole Machina,Windstorm
+Yobe,Geidam,Ashekri,Windstorm
+Yobe,Geidam,Kolori,Windstorm
+Yobe,Geidam,Balle,Windstorm
+Yobe,Geidam, Gumsa,Windstorm
+Yobe,Potiskum,Dogo Nini,Flood
+Yobe,Gujba,Gujba,Flood
+Yobe,Gujba,Buni Gari,Flood
+Yobe,Gujba,Buni Gari,Flood
+Yobe,Gujba,Buni Gari,Flood
+Yobe,Gulani,Bara,Flood
+Yobe,Gulani,Bularafa,Flood
+Yobe,Gulani,Bumsa,Flood
+Yobe,Gulani,Gabai,Flood
+Yobe,Gulani,Gaggure,Flood
+Yobe,Gulani,Dokshi,Flood
+Yobe,Gulani,Gulani,Flood
+Yobe,Gulani,Njibulwa,Flood
+Yobe,Jakusko,Jakusko,Flood
+Yobe,Jakusko,Katamma,Flood
+Yobe,Jakusko,Karage,Flood
+Yobe,Jakusko,Dumburi,Flood
+Yobe,Jakusko,Girgir,Flood
+Yobe,Geidam,Magana,Flood
+Yobe,Yunusari,Toshia,Flood
+Yobe,Bade,Lawan Fannami,Flood
+Yobe,Bade,Lawan Musa,Flood
+Yobe,Bade,Sabon Gari,Flood
+Yobe,Bade,Usur /Dawayo,Flood
+Yobe,Fika,Gadaka,Flood
+Yobe,Geidam,Ashekri,Flood
+Yobe,Geidam,Ashekri,Flood
+Yobe,Geidam,Ashekri,Flood
+Yobe,Geidam,Gumsa,Flood
+Yobe,Geidam,Hausari,Flood
+Yobe,Geidam,Hausari,Flood
+Yobe,Geidam,Kolori,Flood
+Yobe,Geidam,Kusur Damakarwa,Flood
+Yobe,Jakusko,Girgir Bayam Ward,Flood
+Yobe,Jakusko,Jakusko,Flood
+Yobe,Jakusko,Zabudum/Dachiya,Flood
+Yobe,Jakusko,Bukarti,Flood
+Yobe,Karasuwa,Bukarti,Flood
+Yobe,Karasuwa,Gasma,Flood
+Yobe,Karasuwa,Jajimaji,Flood
+Yobe,Karasuwa,Karasuwa Galu,Flood
+Yobe,Karasuwa,Karasuwa Garin Guna,Flood
+Yobe,Karasuwa,Wachakal,Flood
+Yobe,Nangere,Nangere,Flood
+Yobe,Nangere,Dawasa,Flood
+Yobe,Nangere,Tikau,Flood
+Yobe,Potiskum,Bare Bare Bauya,Flood
+Yobe,Potiskum,Bolewa A,Flood
+Yobe,Potiskum,Bolewa B,Flood
+Yobe,Potiskum,Bula Danchuwa,Flood
+Yobe,Potiskum,Dogo Nini,Flood
+Yobe,Potiskum,Dogo Tebo,Flood
+Yobe,Potiskum,Hausawa Asibiti,Flood
+Yobe,Potiskum,Mamudo,Flood
+Yobe,Potiskum,Ngojin Alaraba,Flood
+Yobe,Potiskum,Yerimaram,Flood
+Yobe,Yusufari,Jebuwa,Flood
+Yobe,Yusufari,Maimalari,Flood
+Yobe,Yusufari,Mayori,Flood
+Yobe,Nguru,Bosso,Flood
+Yobe,Nguru,Hausari,Flood
+Yobe,Nguru,Nayinawa,Flood
+Yobe,Nguru,Sabon Garin Kanuri,Flood
+Yobe,Nguru,Bulabulin,Flood
+Yobe,Nguru,Tshohuwar Nguru,Flood

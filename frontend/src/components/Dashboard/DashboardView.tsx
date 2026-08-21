@@ -22,16 +22,16 @@ export default function DashboardView() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-4 sm:gap-6">
       <DateRangeSelector maxDataDate={dashboard?.max_data_date ?? null} />
       <DashboardKpiRow summary={dashboard} />
 
       {/* Main Grid: Map + right rail of alerts/floods */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6" style={{ minHeight: '500px' }}>
-        <div className="xl:col-span-2 flex flex-col rounded-xl overflow-hidden border border-[#e6e8eb] bg-white">
-          <div className="p-4 border-b border-[#e6e8eb] flex justify-between items-center bg-white z-10">
-            <h3 className="font-bold text-[#111518] text-sm">Geospatial Risk Map</h3>
-            <div className="flex gap-4 text-xs">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6">
+        <div className="xl:col-span-2 flex flex-col rounded-xl overflow-hidden border border-[#e6e8eb] bg-white shadow-sm">
+          <div className="p-3 sm:p-4 border-b border-[#e6e8eb] flex flex-row justify-between items-center bg-white z-10">
+            <h3 className="font-bold text-[#111518] text-xs sm:text-sm">Geospatial Risk Map</h3>
+            <div className="flex gap-2 sm:gap-4 text-[10px] sm:text-xs">
               <span className="flex items-center gap-1">
                 <span className="size-2 rounded-full bg-red-500"></span> High
               </span>
@@ -43,21 +43,21 @@ export default function DashboardView() {
               </span>
             </div>
           </div>
-          <div className="flex-1 relative min-h-[400px]">
+          <div className="flex-1 relative min-h-[320px] sm:min-h-[450px]">
             <ErrorBoundary>
               <ChoroplethMap />
             </ErrorBoundary>
           </div>
         </div>
 
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4 sm:gap-6">
           <ActiveAlertsRail />
           <FloodEventsRail />
         </div>
       </div>
 
       {/* Bottom charts: real correlation + v2.0 risk breakdown */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
         <CorrelationChart />
         <RiskBreakdownChart />
       </div>
