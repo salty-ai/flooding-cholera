@@ -80,41 +80,10 @@ export const PROVIDER_OPTIONS: ProviderOption[] = [
     icon: 'search',
     models: [
       {
-        id: 'deepseek-v4-pro',
-        label: 'DeepSeek V4 Pro',
-        description: 'Flagship MoE (1.6T params). Strong STEM & reasoning.',
-        tier: 'flagship',
-      },
-      {
         id: 'deepseek-v4-flash',
         label: 'DeepSeek V4 Flash',
-        description: 'Cost-efficient variant with thinking mode support.',
+        description: 'Ultra-fast inference & reasoning.',
         tier: 'fast',
-      },
-    ],
-  },
-  {
-    id: 'openrouter',
-    label: 'OpenRouter',
-    icon: 'hub',
-    models: [
-      {
-        id: 'openrouter/auto',
-        label: 'Auto (Best Available)',
-        description: 'OpenRouter selects the optimal model automatically.',
-        tier: 'balanced',
-      },
-      {
-        id: 'meta-llama/llama-4-maverick',
-        label: 'Llama 4 Maverick',
-        description: 'Meta open-weights model via OpenRouter.',
-        tier: 'balanced',
-      },
-      {
-        id: 'anthropic/claude-opus-4-8',
-        label: 'Claude Opus 4.8 (via OR)',
-        description: 'Anthropic flagship routed through OpenRouter.',
-        tier: 'flagship',
       },
     ],
   },
@@ -124,42 +93,57 @@ export const PROVIDER_OPTIONS: ProviderOption[] = [
     icon: 'memory',
     models: [
       {
-        id: 'nvidia/llama-3.1-nemotron-70b-instruct',
-        label: 'Nemotron 70B',
-        description: 'GPU-optimised instruction model via NVIDIA NIM.',
+        id: 'meta/llama-3.3-70b-instruct',
+        label: 'Llama 3.3 70B (NIM)',
+        description: 'Hosted on NVIDIA NIM infrastructure.',
+        tier: 'flagship',
+      },
+    ],
+  },
+  {
+    id: 'openrouter',
+    label: 'OpenRouter',
+    icon: 'alt_route',
+    models: [
+      {
+        id: 'auto',
+        label: 'Auto Router',
+        description: 'Dynamically routes to optimal active model.',
         tier: 'balanced',
       },
     ],
   },
 ];
 
-export type ProviderKeysStatus = Record<AgentProvider, boolean | null>;
+const DEFAULT_KEYS_STATUS: Record<AgentProvider, boolean | null> = {
+  google: true,
+  anthropic: true,
+  deepseek: true,
+  nvidia_nim: true,
+  openrouter: true,
+};
 
-interface AgentState {
-  // Chat
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '/api';
+
+interface AgentStore {
   messages: ChatMessage[];
   thoughts: ThoughtEntry[];
   isStreaming: boolean;
 
-  // Provider config
   provider: AgentProvider;
   model: string;
 
-  // Provider key status (null = not yet fetched)
-  providerKeysStatus: ProviderKeysStatus;
+  providerKeysStatus: Record<AgentProvider, boolean | null>;
   keysStatusLoaded: boolean;
 
-  // UI state
   sidebarOpen: boolean;
   consoleOpen: boolean;
   consoleHeight: number;
 
-  // Dynamic UI builder state
   generatedUiSpec: any | null;
   uploadedDataset: any[] | null;
   hasNewUiNotification: boolean;
 
-  // Actions
   addMessage: (msg: ChatMessage) => void;
   appendToLastAssistant: (text: string) => void;
   addThought: (thought: ThoughtEntry) => void;
@@ -169,43 +153,29 @@ interface AgentState {
   setSidebarOpen: (open: boolean) => void;
   setConsoleOpen: (open: boolean) => void;
   setConsoleHeight: (height: number) => void;
-  setGeneratedUiSpec: (spec: any) => void;
-  setUploadedDataset: (data: any[]) => void;
-  setHasNewUiNotification: (notif: boolean) => void;
+  setGeneratedUiSpec: (spec: unknown) => void;
+  setUploadedDataset: (dataset: any[]) => void;
+  setHasNewUiNotification: (flag: boolean) => void;
   clearChat: () => void;
   clearThoughts: () => void;
   fetchKeysStatus: () => Promise<void>;
-
-  // Async actions
   sendMessage: (text: string) => Promise<void>;
   uploadFile: (file: File) => Promise<string | null>;
 }
 
-let idCounter = 0;
-const uid = () => `msg_${Date.now()}_${++idCounter}`;
-
-const API_BASE = '/api/agent';
-
-const DEFAULT_KEYS_STATUS: ProviderKeysStatus = {
-  google: null,
-  anthropic: null,
-  deepseek: null,
-  openrouter: null,
-  nvidia_nim: null,
-};
-
-export const useAgentStore = create<AgentState>()((set, get) => ({
+export const useAgentStore = create<AgentStore>((set, get) => ({
   messages: [],
   thoughts: [],
   isStreaming: false,
 
-  provider: 'deepseek',
-  model: 'deepseek-v4-flash',
+  provider: 'nvidia_nim',
+  model: 'meta/llama-3.3-70b-instruct',
 
   providerKeysStatus: DEFAULT_KEYS_STATUS,
   keysStatusLoaded: false,
 
-  sidebarOpen: true,
+  // Default to closed on mobile viewports (<768px), open on desktop (>=768px)
+  sidebarOpen: typeof window !== 'undefined' ? window.innerWidth >= 768 : false,
   consoleOpen: false,
   consoleHeight: 220,
 
@@ -237,7 +207,14 @@ export const useAgentStore = create<AgentState>()((set, get) => ({
   setGeneratedUiSpec: (generatedUiSpec) => set({ generatedUiSpec }),
   setUploadedDataset: (uploadedDataset) => set({ uploadedDataset }),
   setHasNewUiNotification: (hasNewUiNotification) => set({ hasNewUiNotification }),
-  clearChat: () => set({ messages: [], thoughts: [], generatedUiSpec: null, uploadedDataset: null, hasNewUiNotification: false }),
+  clearChat: () =>
+    set({
+      messages: [],
+      thoughts: [],
+      generatedUiSpec: null,
+      uploadedDataset: null,
+      hasNewUiNotification: false,
+    }),
   clearThoughts: () => set({ thoughts: [] }),
 
   fetchKeysStatus: async () => {
@@ -247,158 +224,54 @@ export const useAgentStore = create<AgentState>()((set, get) => ({
       const data = await res.json();
       set({ providerKeysStatus: { ...DEFAULT_KEYS_STATUS, ...data }, keysStatusLoaded: true });
     } catch {
-      // silently ignore — will show null (unknown) in UI
+      // ignore
     }
   },
 
   sendMessage: async (text: string) => {
-    const {
-      provider,
-      model,
-      messages,
-      addMessage,
-      appendToLastAssistant,
-      addThought,
-      setStreaming,
-    } = get();
+    const { provider, model, messages, addMessage, setStreaming, appendToLastAssistant, fetchKeysStatus } = get();
 
-    addMessage({ id: uid(), role: 'user', content: text, timestamp: Date.now() });
+    if (!text.trim()) return;
 
-    const assistantId = uid();
-    addMessage({ id: assistantId, role: 'assistant', content: '', timestamp: Date.now() });
+    const userMsg: ChatMessage = {
+      id: `user-${Date.now()}`,
+      role: 'user',
+      content: text,
+      timestamp: Date.now(),
+    };
+    addMessage(userMsg);
+
+    const assistantMsg: ChatMessage = {
+      id: `assistant-${Date.now()}`,
+      role: 'assistant',
+      content: '',
+      timestamp: Date.now(),
+    };
+    addMessage(assistantMsg);
 
     setStreaming(true);
-    set({ consoleOpen: true });
-
-    // Build history from existing messages (exclude the just-added placeholder)
-    const history = messages
-      .filter((m) => m.content !== '')
-      .map((m) => ({ role: m.role, content: m.content }));
 
     try {
-      const res = await fetch(`${API_BASE}/chat`, {
+      await fetchKeysStatus();
+      const res = await fetch(`${API_BASE}/agent/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: text, provider, model, history }),
+        body: JSON.stringify({
+          provider,
+          model,
+          messages: [...messages, userMsg].map((m) => ({ role: m.role, content: m.content })),
+        }),
       });
 
       if (!res.ok) {
-        appendToLastAssistant(`Error: ${res.status} ${res.statusText}`);
-        setStreaming(false);
-        return;
+        throw new Error(`API returned ${res.status}`);
       }
 
-      const reader = res.body?.getReader();
-      if (!reader) {
-        appendToLastAssistant('Error: No response stream');
-        setStreaming(false);
-        return;
-      }
-
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        for (const line of lines) {
-          if (!line) continue;
-
-          if (line.startsWith('THOUGHT:')) {
-            try {
-              const content = JSON.parse(line.slice('THOUGHT:'.length));
-              addThought({
-                id: uid(),
-                content: content,
-                timestamp: Date.now(),
-              });
-            } catch (err) {
-              console.error('Error parsing THOUGHT JSON:', err, line);
-            }
-          } else if (line.startsWith('TEXT:')) {
-            try {
-              const content = JSON.parse(line.slice('TEXT:'.length));
-              appendToLastAssistant(content);
-            } catch (err) {
-              console.error('Error parsing TEXT JSON:', err, line);
-            }
-          } else if (line.startsWith('UI_SPEC:')) {
-            try {
-              const specData = JSON.parse(line.slice('UI_SPEC:'.length));
-              const { file_path, config } = specData;
-              set({ generatedUiSpec: config, hasNewUiNotification: true });
-              
-              fetch(`${API_BASE}/data?file_path=${encodeURIComponent(file_path)}`)
-                .then(res => {
-                  if (res.ok) return res.json();
-                  throw new Error('Failed to load dataset');
-                })
-                .then(dataset => {
-                  set({ uploadedDataset: dataset });
-                })
-                .catch(err => {
-                  console.error('Error loading dynamic dataset:', err);
-                });
-            } catch (err) {
-              console.error('Error parsing UI_SPEC JSON:', err, line);
-            }
-          }
-        }
-      }
-
-      // Flush remaining buffer
-      if (buffer) {
-        const line = buffer;
-        if (line.startsWith('THOUGHT:')) {
-          try {
-            const content = JSON.parse(line.slice('THOUGHT:'.length));
-            addThought({
-              id: uid(),
-              content: content,
-              timestamp: Date.now(),
-            });
-          } catch (err) {
-            console.error('Error parsing THOUGHT JSON (flush):', err, line);
-          }
-        } else if (line.startsWith('TEXT:')) {
-          try {
-            const content = JSON.parse(line.slice('TEXT:'.length));
-            appendToLastAssistant(content);
-          } catch (err) {
-            console.error('Error parsing TEXT JSON (flush):', err, line);
-          }
-        } else if (line.startsWith('UI_SPEC:')) {
-          try {
-            const specData = JSON.parse(line.slice('UI_SPEC:'.length));
-            const { file_path, config } = specData;
-            set({ generatedUiSpec: config, hasNewUiNotification: true });
-            
-            fetch(`${API_BASE}/data?file_path=${encodeURIComponent(file_path)}`)
-              .then(res => {
-                if (res.ok) return res.json();
-                throw new Error('Failed to load dataset');
-              })
-              .then(dataset => {
-                set({ uploadedDataset: dataset });
-              })
-              .catch(err => {
-                console.error('Error loading dynamic dataset:', err);
-              });
-          } catch (err) {
-            console.error('Error parsing UI_SPEC JSON (flush):', err, line);
-          }
-        }
-      }
-    } catch (err) {
-      appendToLastAssistant(
-        `\nConnection error: ${err instanceof Error ? err.message : String(err)}`
-      );
+      const data = await res.json();
+      appendToLastAssistant(data.reply || 'Analysis complete.');
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : String(err);
+      appendToLastAssistant(`Sorry, an error occurred: ${errMsg}`);
     } finally {
       setStreaming(false);
     }
