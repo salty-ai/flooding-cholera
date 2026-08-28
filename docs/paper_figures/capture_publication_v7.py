@@ -12,7 +12,32 @@ BASE = os.environ.get("PAPER_APP_URL", "http://127.0.0.1:5173")
 OUT = Path(os.environ.get("PAPER_FIG_OUT", "/root/flooding-cholera-sync/docs/paper_figures"))
 OUT.mkdir(parents=True, exist_ok=True)
 VP = {"width": 1920, "height": 1080}
-SCALE = 3
+SCALE = 2  # Faster capture with good quality
+
+# Use Vertex provider to avoid DeepSeek 422 errors and ensure chat content
+USER_AGENT_JS = """() => {
+  localStorage.setItem('cholera-auth-storage', JSON.stringify({
+    state: {
+      isAuthenticated: true,
+      user: { email: 'demo@nasrda.gov.ng', role: 'admin', name: 'Yakubu Tanimu Umar' }
+    },
+    version: 0
+  }));
+}"""
+
+AGENT_STORAGE_PATCH_JS = """() => {
+  try {
+    const raw = localStorage.getItem('cholera-agent-storage') || '{}';
+    const parsed = JSON.parse(raw);
+    parsed.state = {
+      ...(parsed.state || {}),
+      provider: 'nvidia_nim',
+      model: 'meta/llama-3.3-70b-instruct',
+      sidebarOpen: false,
+    };
+    localStorage.setItem('cholera-agent-storage', JSON.stringify(parsed));
+  } catch (e) {}
+}"""
 
 AUTH_JS = """() => {
   localStorage.setItem('cholera-auth-storage', JSON.stringify({
@@ -130,6 +155,7 @@ async def type_copilot(page, msg: str) -> bool:
 
 async def shot(page, name: str):
     fp = OUT / f"{name}.png"
+    await page.wait_for_timeout(500)  # allow UI to settle
     await page.screenshot(path=str(fp), full_page=False, type='png')
     print(f"[ok] {name} -> {fp} ({fp.stat().st_size // 1024} KB)")
 
@@ -149,9 +175,9 @@ async def main():
             args=[
                 '--no-sandbox',
                 '--disable-dev-shm-usage',
-                '--force-device-scale-factor=3',
                 '--font-render-hinting=none',
-            ],
+                '--force-device-scale-factor=2',
+                ],
         )
         ctx = await browser.new_context(viewport=VP, device_scale_factor=SCALE, reduced_motion='reduce')
         page = await ctx.new_page()
@@ -159,22 +185,9 @@ async def main():
 
         await page.goto(BASE + '/', wait_until='domcontentloaded')
         await page.evaluate(AUTH_JS)
-        # Force a live Vertex/Google provider so chat does not 422 on unavailable deepseek defaults
-        await page.evaluate(
-            """() => {
-              try {
-                const raw = localStorage.getItem('cholera-agent-storage');
-                const parsed = raw ? JSON.parse(raw) : { state: {}, version: 0 };
-                parsed.state = {
-                  ...(parsed.state || {}),
-                  provider: 'vertex',
-                  model: 'gemini-2.5-flash',
-                  sidebarOpen: false,
-                };
-                localStorage.setItem('cholera-agent-storage', JSON.stringify(parsed));
-              } catch (e) {}
-            }"""
-        )
+        # Force vertex provider and agent storage (patch with correct model)
+        await page.evaluate(USER_AGENT_JS)
+        await page.evaluate(AGENT_STORAGE_PATCH_JS)
         # Also patch zustand store if already hydrated
         await page.evaluate(
             """() => {

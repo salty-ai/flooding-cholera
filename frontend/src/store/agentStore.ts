@@ -168,8 +168,8 @@ export const useAgentStore = create<AgentStore>((set, get) => ({
   thoughts: [],
   isStreaming: false,
 
-  provider: 'google',
-  model: 'gemini-3.5-flash',
+  provider: 'nvidia_nim',
+  model: 'meta/llama-3.3-70b-instruct',
 
   providerKeysStatus: DEFAULT_KEYS_STATUS,
   keysStatusLoaded: false,

@@ -18,8 +18,8 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str
-    provider: str = "deepseek"
-    model: str = "deepseek-v4-flash"
+    provider: str = "nvidia_nim"
+    model: str = "meta/llama-3.3-70b-instruct"
     history: list[ChatMessage] = []
 
 

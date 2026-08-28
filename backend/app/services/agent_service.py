@@ -47,7 +47,7 @@ PROVIDER_ENV_KEYS = {
     "anthropic":   "ANTHROPIC_API_KEY",
     "deepseek":    "DEEPSEEK_API_KEY",
     "openrouter":  "OPENROUTER_API_KEY",
-    "nvidia_nim":  "NVIDIA_NIM_API_KEY",
+    "nvidia_nim":  "NVIDIA_API_KEY",  # actual env key (was NVIDIA_NIM_API_KEY) — fixed 2026-08-24
 }
 
 
@@ -215,8 +215,8 @@ class SurveillanceAgent:
 
     def __init__(
         self,
-        provider: str = "deepseek",
-        model: str = "deepseek-v4-flash",
+        provider: str = "nvidia_nim",
+        model: str = "meta/llama-3.3-70b-instruct",
         api_key: str | None = None,
         history: list[dict] | None = None,
     ):

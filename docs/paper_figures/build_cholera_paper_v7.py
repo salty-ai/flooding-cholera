@@ -25,18 +25,20 @@ import os
 from docx.shared import Inches
 FIG_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)))
 _IMG={
- "Figure 1": os.path.join(FIG_DIR, "diag_architecture.png"),
- "Figure 2": os.path.join(FIG_DIR, "diag_pipeline.png"),
- "Figure 3": os.path.join(FIG_DIR, "app_dashboard.png"),
- "Figure 4": os.path.join(FIG_DIR, "app_map.png"),
- "Figure 5": os.path.join(FIG_DIR, "fig_crossriver_pilot.png"),
- "Figure 6": os.path.join(FIG_DIR, "app_facilities.png"),
- "Figure 7": os.path.join(FIG_DIR, "fig_national_burden.png"),
- "Figure 8": os.path.join(FIG_DIR, "fig_lag_signal.png"),
- "Figure 9": os.path.join(FIG_DIR, "app_alerts.png"),
- "Figure 10": os.path.join(FIG_DIR, "app_surveillance_copilot.png"),
- "Figure 11": os.path.join(FIG_DIR, "app_agent_explorer.png"),
- "Figure 12": os.path.join(FIG_DIR, "diag_roadmap.png"),
+ "Figure 1": os.path.join(FIG_DIR, "Figure_1_Architecture_diagram.png"),
+ "Figure 2": os.path.join(FIG_DIR, "Figure_2_Data_pipeline_diagram.png"),
+ "Figure 3": os.path.join(FIG_DIR, "Figure_3_Pilot_flood_exposure_panels.png"),
+ "Figure 4": os.path.join(FIG_DIR, "Figure_4_National_dashboard.png"),
+ "Figure 5": os.path.join(FIG_DIR, "Figure_5_National_map.png"),
+ "Figure 6": os.path.join(FIG_DIR, "Figure_6_Cross_River_pilot_cases_deaths_chart.png"),
+ "Figure 7": os.path.join(FIG_DIR, "Figure_7_FMOH_facilities_browser.png"),
+ "Figure 8": os.path.join(FIG_DIR, "Figure_8_National_NCDC_burden_chart.png"),
+ "Figure 9": os.path.join(FIG_DIR, "Figure_9_Exploratory_lag_signal.png"),
+ "Figure 10": os.path.join(FIG_DIR, "Figure_10_Alerts_with_data.png"),
+ "Figure 11": os.path.join(FIG_DIR, "Figure_11_AI_Surveillance_Copilot_open.png"),
+ "Figure 12": os.path.join(FIG_DIR, "Figure_12_Agent_Explorer_page.png"),
+ "Figure 13": os.path.join(FIG_DIR, "Figure_13_Copilot_schema_benchmark.png"),
+ "Figure 14": os.path.join(FIG_DIR, "Figure_14_Roadmap_diagram.png"),
 }
 _used=set()
 def figph(t, img=None, width=6.7):
@@ -104,13 +106,12 @@ P("Observed flood exposure for the four pilot LGAs was derived by intersecting a
 "model invocations over twelve schema variants of the same observed dataset. Under unconstrained prompting the "
 "assistant referenced non-existent columns in 97.2% of trials; requiring a file-inspection tool call before dashboard "
 "generation eliminated schema hallucination entirely (100% grounding) and raised correct binding of the case-count "
-"field from 33.3% to 91.7%. This is reported as a measured capability with an identified failure mode and mitigation, "
-"not as a validated epidemiological instrument.")
+"field from 33.3% to 91.7%. This is reported as a measured capability with an identified failure mode and mitigation.")
 P("Cross-correlation between satellite-detected surface-water anomalies and reported cholera activity is provided as an "
 "exploratory decision-support signal, consistent with the one-to-two-month environmental lag reported in the literature, "
-"and is not presented as a validated forecast or as evidence of causation. The results demonstrate the technical "
+"and is not presented as a prospective forecast or as evidence of causation. The results demonstrate the technical "
 "feasibility and operational value of an EO-integrated, multi-agency situational-awareness platform, and set out the "
-"data-governance and validation steps required to move from retrospective decision support toward prospective early warning.")
+"data-governance and validation steps required to move from retrospective decision support toward prospective early situational awareness.")
 P("Keywords: Earth Observation, Cholera Surveillance, Hydro-Epidemiology, Satellite Remote Sensing, Geostatistical Risk "
 "Scoring, Flood Risk Mapping, Decision Support Systems, Agentic AI, Nigeria.",italic=True,size=10)
 
@@ -118,7 +119,7 @@ P("Keywords: Earth Observation, Cholera Surveillance, Hydro-Epidemiology, Satell
 H("1. Introduction",1)
 P("Public health surveillance and response is often complicated by the complex interaction between hydrometeorological "
 "variables and epidemiological outcomes. Traditional public health surveillance is mostly fragmented and lacks the spatial "
-"granularity, as well as the real-time environmental data required to holistically understand the triggers and impact for "
+"granularity, as well as the configured environmental data required to holistically understand the triggers and impact for "
 "both proactive and retrospective interventions (Singh et al., 2024; Atobatele et al., 2019). In Nigeria, this challenge is "
 "magnified by precarious water insecurity, rapid urban growth, and fragile infrastructure, which collectively intensify the "
 "threat of waterborne pathogens.")
@@ -138,7 +139,7 @@ P("Environment and climate-induced shifts, such as erratic rainfall, increased t
 "inundation, directly and indirectly driving spikes in cholera transmission.")
 P("Surveillance and monitoring systems are essential for the early detection of outbreaks within highly vulnerable areas. Early "
 "intervention through the provision of clean water and oral cholera vaccines, coupled with improved health services, results in "
-"a significant potential reduction in the impact of cholera outbreaks (Mikaberidze, 2025; Chowdhury et al., 2022; Meckawy et "
+"a potential reduction in the impact of cholera outbreaks (Mikaberidze, 2025; Chowdhury et al., 2022; Meckawy et "
 "al., 2022).")
 P("This paper seeks to address this critical operational gap by presenting the conceptualization and pilot deployment of an "
 "innovative and bespoke Earth Observation (EO)-enabled Environmental Health Surveillance and Intelligence Hub. The platform is "
@@ -179,11 +180,11 @@ P("Over the years, EO has evolved from a specialized geospatial scientific tool 
 "satellite-based flood mapping has enabled rapid humanitarian responses during flood incidents.")
 P("Critically, EO also plays a central role in monitoring Water, Sanitation, and Hygiene (WASH) infrastructure risks, especially "
 "in low-resource settings where conventional monitoring is sparse or absent. By detecting environmental precursors such as "
-"flooding, stagnant water accumulation, and temperature shifts, EO provides scalable, near real-time data streams that can "
+"flooding, stagnant water accumulation, and temperature shifts, EO provides scalable data streams that can "
 "inform public health interventions before outbreaks occur, as well as after (Pezanowski et al., 2024; Mobasheri, 2022; Peprah "
 "et al., 2026). Thus, EO functions as an environmental health infrastructure that offers a continuous, transboundary data "
 "pipeline connecting ecological change to human well-being. Many scientists and resource managers have already recognized the "
-"importance of adopting predictive approaches for epidemics and pandemics before their occurrences (Adegoke et al., 2024; "
+"importance of adopting decision-support approaches for epidemics and pandemics before their occurrences (Adegoke et al., 2024; "
 "Kamalrathne et al., 2023; Morse et al., 2012), and in parallel, the use of EO and GIS approaches has noticeably increased.")
 
 H("2.2 Key Environmental Indicators for Cholera Risk Mapping",2)
@@ -246,7 +247,7 @@ P("Despite these advances, the operational use of EO in infectious disease surve
 "(Wright et al., 2025; Singh et al., 2025; Akanda et al., 2011). While decades of research have established strong associations "
 "between environmental drivers and cholera outbreaks, this knowledge has not been systematically translated into public health "
 "practice. Singh et al. (2025) synthesized 1,137 peer-reviewed studies on remote sensing applications in infectious disease "
-"surveillance and found that predictive approaches are significantly more effective than reactive responses. However, they "
+"surveillance and found that proactive decision-support approaches are more effective than reactive responses. However, they "
 "identified persistent challenges that limit operational use, particularly the difficulty of obtaining field-collected "
 "environmental data aligned with microbiological measurements, and inconsistencies in epidemiological reporting. These barriers "
 "are especially pronounced in settings such as Nigeria, where surveillance systems are often fragmented, data availability is "
@@ -307,7 +308,7 @@ P("A national LGA-month panel covering all 774 LGAs was deliberately not constru
 "cases for 2021 against the 111,062 officially reported by NCDC, and attributed Cross River case loads to LGAs that do not "
 "appear in the verified state line-list. It was therefore excluded in full, and no synthetic or simulated epidemiological "
 "values appear anywhere in this study.")
-figph("Figure 1", img=os.path.join(FIG_DIR, "diag_architecture.png"))
+figph("Figure 1", img=os.path.join(FIG_DIR, "Figure_1_Architecture_diagram.png"))
 caption("Figure 1: System architecture — three-tier Earth Observation-enabled cholera surveillance hub, showing raw data "
 "sources (Tier 1), backend microservices (Tier 2), the delivery layer (Tier 3), and actionable outputs.")
 
@@ -369,7 +370,7 @@ P("Environmental indices were computed within GEE and aggregated to administrati
 "the literature (Campbell et al., 2020; Hashizume et al., 2008), the hub aggregates environmental indices over a rolling window "
 "preceding each epidemiological reporting period. Where a satellite product is unavailable for a requested location or date, "
 "the platform returns an explicit unavailable status rather than substituting synthetic values.")
-figph("Figure 2", img=os.path.join(FIG_DIR, "diag_pipeline.png"))
+figph("Figure 2", img=os.path.join(FIG_DIR, "Figure_2_Data_pipeline_diagram.png"))
 caption("Figure 2: End-to-end data processing pipeline — from raw EO satellite grids and NCDC/line-list epidemiological "
 "records through preprocessing, spatial join, and geostatistical risk scoring to alerts and decision support.")
 
@@ -474,7 +475,7 @@ table(["Sentinel LGA","LGA area (km²)","Flood events 2000–2026","Years with f
  ["Biase","1,292.7","35","11","1,277.80","98.8%","22","10"],
  ["Calabar Municipal","137.5","136","17","130.71","95.0%","92","6"],
  ["Bakassi","4.2","2","2","4.20","100.0%","2","5"]])
-figph("Figure 3", img=os.path.join(FIG_DIR, "fig_pilot_flood.png"), width=6.7)
+figph("Figure 3", img=os.path.join(FIG_DIR, "Figure_3_Pilot_flood_exposure_panels.png"), width=6.7)
 caption("Figure 3: Observed flood exposure for the four Cross River sentinel LGAs. (a) Count of dated "
 "flood events intersecting each LGA, 2000–2026. (b) Cumulative union flooded area for the pre-outbreak decade 2011–2020, "
 "expressed as a percentage of LGA area. (c) Pre-outbreak flood exposure against reported 2021 suspected cases. Panel (c) is "
@@ -500,17 +501,17 @@ P("The dashboard and map successfully rendered geospatial risk layers, LGA-level
 "directly from the ingested line-list. The map component is built against the full 774-LGA GRID3 boundary set; in this "
 "study it is populated with observed case data only for the four pilot LGAs where line-list evidence exists, and "
 "unpopulated units are rendered as no-data rather than as zero risk.")
-figph("Figure 4", img=os.path.join(FIG_DIR, "app_dashboard.png"), width=6.7)
+figph("Figure 4", img=os.path.join(FIG_DIR, "Figure_4_National_dashboard.png"), width=6.7)
 caption("Figure 4: National risk dashboard — 774-LGA choropleth, KPI strip, exploratory flood–cholera lag panel, multi-factor vulnerability ranking, and active-alert rail.")
-figph("Figure 5", img=os.path.join(FIG_DIR, "app_map.png"), width=6.7)
+figph("Figure 5", img=os.path.join(FIG_DIR, "Figure_5_National_map.png"), width=6.7)
 caption("Figure 5: Full-screen national map view for LGA-level risk exploration and spatial navigation across the Federal Republic of Nigeria.")
-figph("Figure 6", img=os.path.join(FIG_DIR, "fig_crossriver_pilot.png"))
+figph("Figure 6", img=os.path.join(FIG_DIR, "Figure_6_Cross_River_pilot_cases_deaths_chart.png"))
 caption("Figure 6: Cross River 2021 sentinel pilot — cases and deaths by LGA from the anonymized line-list aggregate (not a national LGA panel).")
 P("The small case volume and restricted geographic footprint of this pilot preclude inferential conclusions; the exercise "
 "establishes technical feasibility and interface usability for public health practitioners. The platform also incorporates "
 "the FMOH health-facility registry (Figure 7) to support response planning.")
-figph("Figure 7", img=os.path.join(FIG_DIR, "app_facilities.png"))
-caption("Figure 7: FMOH health-facility registry browser (inventory view with filters); counts reflect registry presence, not independently re-validated facility audits.")
+figph("Figure 7", img=os.path.join(FIG_DIR, "Figure_7_FMOH_facilities_browser.png"))
+caption("Figure 7: FMOH health-facility registry browser (inventory view with filters); counts reflect registry presence.")
 H("5. Nationally Reported Cholera Burden, 2021–2025",1)
 P("This section reports the national tier of evidence. All figures are official NCDC state-level counts covering the "
 "federation. They are independent of the Cross River pilot in Section 4, are not derived from it, and are not "
@@ -533,7 +534,7 @@ P("Table 6 must be read as a series of officially published reporting snapshots 
 "NCDC published a proportional reduction rather than an absolute annual total; that relative figure is reported here as "
 "published and no absolute value has been imputed for it. Cross-year comparison of these values without accounting for "
 "differing reporting windows would be misleading.")
-figph("Figure 8", img=os.path.join(FIG_DIR, "fig_national_burden.png"))
+figph("Figure 8", img=os.path.join(FIG_DIR, "Figure_8_National_NCDC_burden_chart.png"))
 caption("Figure 8: Nationally reported cholera burden, Nigeria (NCDC annual/SitRep compilation, 2021–2025). The 2021 epidemic "
 "(111,062 suspected cases; 3,604 deaths) is the largest recent national outbreak. Bars for 2024 and 2025 reflect part-year "
 "cumulative reporting and are not directly comparable with the completed 2021 full-year count. State-level official reporting; "
@@ -543,8 +544,8 @@ P("The 2021 outbreak coincided with above-average rainfall across the Guinea Sav
 "cholera activity provides an exploratory decision-support signal for the association between surface-water persistence and "
 "subsequent case reporting. Consistent with the literature (Campbell et al., 2020; Hashizume et al., 2008), the environmental "
 "signal precedes reported case activity by approximately one to two months; this relationship is presented as a "
-"decision-support indicator for prioritization and is not a validated forecast or proof of causation.")
-figph("Figure 9", img=os.path.join(FIG_DIR, "fig_lag_signal.png"))
+"decision-support indicator for prioritization and is not a prospective forecast or proof of causation.")
+figph("Figure 9", img=os.path.join(FIG_DIR, "Figure_9_Exploratory_lag_signal.png"))
 caption("Figure 9: Exploratory flood–cholera temporal association (decision-support signal). Dependence and multiplicity are "
 "not corrected; no causal or predictive claim is made.")
 
@@ -558,7 +559,7 @@ P("Beyond the epidemiological demonstrations, the platform provides a configurab
 "supporting case-surge, high-risk-score and recent-flooding triggers, together with PDF and CSV report export. The alert "
 "engine's epidemiological performance — alert sensitivity, specificity and timeliness against observed outbreaks — requires "
 "prospective evaluation and is not claimed here.")
-figph("Figure 10", img=os.path.join(FIG_DIR, "app_alerts.png"), width=6.7)
+figph("Figure 10", img=os.path.join(FIG_DIR, "Figure_10_Alerts_with_data.png"), width=6.7)
 caption("Figure 10: Alerts & Notifications with populated severity-ranked alerts (case spike, flood exposure, rainfall "
 "threshold, risk-band change) spanning Cross River pilot LGAs and national LGAs. Screenshot captured with active alert rows.")
 P("Figure 11 shows the AI Surveillance Copilot sidebar open on the national dashboard during a live query. Figure 12 shows "
