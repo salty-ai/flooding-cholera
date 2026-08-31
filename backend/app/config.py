@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     gee_service_account_email: Optional[str] = None
     gee_private_key_path: Optional[str] = None
     gee_service_account_json: Optional[str] = None
+    # Earth Engine project id for ADC-based auth (no exported SA key required)
+    ee_project: Optional[str] = None
 
     # NASA Earthdata
     nasa_earthdata_username: Optional[str] = None
