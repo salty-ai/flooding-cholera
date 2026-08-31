@@ -20,8 +20,6 @@ geojson==3.1.0
 earthengine-api==1.7.10
 google-auth==2.47.0
 google-auth-httplib2==0.3.0
-h5py==3.10.0
-netCDF4==1.6.5
 requests==2.31.0
 
 # Scheduling
@@ -44,7 +42,8 @@ sentry-sdk[fastapi]==1.40.0
 # pytest-asyncio==0.23.4
 
 # AI Agentic Surveillance dependencies
-google-antigravity>=0.1.0
+# google-antigravity is optional; agent_service.py falls back gracefully and
+# uses litellm. Excluded to avoid uvicorn/httpx/pydantic resolver conflicts.
 litellm>=1.20.0
 
 # Data export & analysis
