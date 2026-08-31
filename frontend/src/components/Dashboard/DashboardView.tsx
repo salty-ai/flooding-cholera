@@ -27,7 +27,7 @@ export default function DashboardView() {
       <DashboardKpiRow summary={dashboard} />
 
       {/* Main Grid: Map + right rail of alerts/floods */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6" style={{ minHeight: '500px' }}>
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 xl:min-h-[500px]">
         <div className="xl:col-span-2 flex flex-col rounded-xl overflow-hidden border border-[#e6e8eb] bg-white">
           <div className="p-4 border-b border-[#e6e8eb] flex justify-between items-center bg-white z-10">
             <h3 className="font-bold text-[#111518] text-sm">Geospatial Risk Map</h3>
