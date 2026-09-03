@@ -205,7 +205,7 @@ export const useAgentStore = create<AgentState>()((set, get) => ({
   providerKeysStatus: DEFAULT_KEYS_STATUS,
   keysStatusLoaded: false,
 
-  sidebarOpen: true,
+  sidebarOpen: typeof window !== 'undefined' ? window.innerWidth >= 1024 : false,
   consoleOpen: false,
   consoleHeight: 220,
 

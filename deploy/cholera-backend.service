@@ -1,0 +1,16 @@
+[Unit]
+Description=Cholera EO Hub FastAPI backend
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=debian
+WorkingDirectory=/home/debian/cholera-app/backend
+EnvironmentFile=/home/debian/cholera-app/backend/.env
+Environment=GOOGLE_APPLICATION_CREDENTIALS=/home/debian/cholera-app/backend/adc.json
+ExecStart=/home/debian/cholera-app/backend/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8010
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -26,6 +26,10 @@ class EarthEngineService:
         if settings.gee_service_account_json:
             return True
 
+        # Application Default Credentials path: only needs a project id.
+        if getattr(settings, "ee_project", None):
+            return True
+
         return bool(
             settings.gee_service_account_email and
             settings.gee_private_key_path and
@@ -45,6 +49,22 @@ class EarthEngineService:
         try:
             import ee
             from google.oauth2 import service_account
+
+            # Application Default Credentials (no exported SA key needed).
+            # Used when a service-account JSON/key is not provided but an
+            # EE-registered project id is available (e.g. server ADC).
+            if not settings.gee_service_account_json and not (
+                settings.gee_service_account_email and settings.gee_private_key_path
+            ) and getattr(settings, "ee_project", None):
+                try:
+                    ee.Initialize(project=settings.ee_project)
+                    self._authenticated = True
+                    self._ee = ee
+                    logger.info("Authenticated with Earth Engine via ADC (project=%s)", settings.ee_project)
+                    return True
+                except Exception:
+                    logger.exception("ADC Earth Engine initialization failed")
+                    return False
 
             if settings.gee_service_account_json:
                 try:

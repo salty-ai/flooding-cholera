@@ -20,8 +20,13 @@ interface AuthState {
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
-      isAuthenticated: false,
-      user: null,
+      // Demo environment: land visitors straight in the dashboard (no login wall).
+      isAuthenticated: true,
+      user: {
+        email: 'demo@nasrda.gov.ng',
+        role: 'State Epidemiologist',
+        name: 'Demo User',
+      },
       login: (email: string, role: UserRole) => {
         // Extract name from email (simple demo logic)
         const name = email.split('@')[0].replace(/[._]/g, ' ');

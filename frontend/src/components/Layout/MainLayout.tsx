@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useAuthStore } from '../../store/authStore';
 import { useAlerts } from '../../hooks/useApi';
 import { useAppStore } from '../../store/appStore';
@@ -26,6 +27,7 @@ export default function MainLayout({ activeTab, onTabChange, children }: MainLay
   const { data: alerts } = useAlerts();
   const { selectedLGAId } = useAppStore();
   const { sidebarOpen, setSidebarOpen, consoleOpen, hasNewUiNotification, setHasNewUiNotification } = useAgentStore();
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const criticalAlerts = alerts?.filter(a => a.severity === 'critical').length || 0;
 
@@ -45,12 +47,25 @@ export default function MainLayout({ activeTab, onTabChange, children }: MainLay
       setHasNewUiNotification(false);
     }
     onTabChange(id);
+    setMobileNavOpen(false);
   };
 
   return (
     <div className="flex h-screen w-full bg-[#f6f7f8] font-display overflow-hidden">
-      {/* ── Left Navigation ── */}
-      <aside className="flex w-64 flex-col border-r border-[#e6e8eb] bg-white flex-shrink-0 z-20">
+      {/* ── Mobile nav backdrop ── */}
+      {mobileNavOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={() => setMobileNavOpen(false)}
+        />
+      )}
+
+      {/* ── Left Navigation (drawer on mobile, static on desktop) ── */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-64 flex flex-col border-r border-[#e6e8eb] bg-white flex-shrink-0 transition-transform duration-300 lg:static lg:z-20 lg:translate-x-0 ${
+          mobileNavOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
+      >
         <div className="flex h-full flex-col justify-between p-4">
           <div className="flex flex-col gap-6">
             {/* User Profile */}
@@ -126,15 +141,26 @@ export default function MainLayout({ activeTab, onTabChange, children }: MainLay
       {/* ── Center: Header + Content + Console ── */}
       <main className="flex flex-1 flex-col overflow-hidden relative min-w-0">
         {/* Top Header */}
-        <header className="flex h-16 items-center justify-between border-b border-[#e6e8eb] bg-white px-6 flex-shrink-0 z-10">
-          <div className="flex items-center gap-3 flex-shrink-0">
+        <header className="flex h-16 items-center justify-between border-b border-[#e6e8eb] bg-white px-4 sm:px-6 flex-shrink-0 z-10">
+          <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0 min-w-0">
+            {/* Hamburger (mobile only) */}
+            <button
+              onClick={() => setMobileNavOpen(true)}
+              className="lg:hidden flex items-center justify-center size-9 rounded-lg hover:bg-[#f0f2f5] text-[#637588] transition-colors flex-shrink-0"
+              aria-label="Open navigation"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '24px' }}>menu</span>
+            </button>
             <div className="size-8 text-primary flex items-center justify-center bg-primary/20 rounded-lg flex-shrink-0">
               <span className="material-symbols-outlined filled" style={{ fontSize: '20px' }}>health_and_safety</span>
             </div>
-            <h2 className="text-lg font-bold tracking-tight text-[#111518] whitespace-nowrap">Cholera Surveillance System</h2>
+            <h2 className="text-sm sm:text-lg font-bold tracking-tight text-[#111518] truncate lg:whitespace-nowrap">
+              <span className="hidden sm:inline">Cholera Surveillance System</span>
+              <span className="sm:hidden">Cholera Surveillance</span>
+            </h2>
             <span className="text-sm text-[#637588] hidden lg:block flex-shrink-0">• Federal Republic of Nigeria (774 LGAs)</span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
             {/* Search */}
             <div className="hidden md:block w-72">
               <LGASearchBar placeholder="Search LGA for report..." />
@@ -170,7 +196,7 @@ export default function MainLayout({ activeTab, onTabChange, children }: MainLay
         </header>
 
         {/* Scrollable Content */}
-        <div className="flex-1 overflow-y-auto p-6 scroll-smooth custom-scrollbar">
+        <div className="flex-1 overflow-y-auto p-3 sm:p-6 scroll-smooth custom-scrollbar">
           <div className="max-w-[1600px] mx-auto">
             {children}
           </div>
@@ -180,9 +206,9 @@ export default function MainLayout({ activeTab, onTabChange, children }: MainLay
         <SystemConsole />
       </main>
 
-      {/* ── Right: LGA Detail Panel (contextual) ── */}
+      {/* ── Right: LGA Detail Panel (full-screen overlay on mobile, side panel on desktop) ── */}
       {selectedLGAId && (
-        <aside className="w-96 flex-shrink-0 overflow-hidden border-l border-[#e6e8eb] bg-white z-20">
+        <aside className="fixed inset-0 z-50 w-full overflow-hidden bg-white lg:static lg:z-20 lg:w-96 lg:flex-shrink-0 lg:border-l lg:border-[#e6e8eb]">
           <LGADetailPanel />
         </aside>
       )}

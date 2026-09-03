@@ -10,7 +10,7 @@ export default function MapOnlyView() {
   return (
     <div className="flex flex-col gap-6 h-full">
       {/* Full Map */}
-      <div className="flex-1 rounded-xl overflow-hidden border border-[#e6e8eb] bg-white relative min-h-[600px]">
+      <div className="flex-1 rounded-xl overflow-hidden border border-[#e6e8eb] bg-white relative min-h-[400px] sm:min-h-[600px]">
         {/* Map Header */}
         <div className="absolute top-0 left-0 right-0 p-4 flex justify-between items-center bg-white/95 backdrop-blur z-10 border-b border-[#e6e8eb]">
           <div className="flex items-center gap-3">

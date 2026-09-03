@@ -6,5 +6,6 @@ from app.models.alert import Alert
 from app.models.alert_rule import AlertRule
 from app.models.facility import HealthFacility
 from app.models.flood_event import FloodEvent
+from app.models.state_cholera import StateCholeraRecord
 
-__all__ = ["Alert", "AlertRule", "CaseReport", "EnvironmentalData", "FloodEvent", "HealthFacility", "LGA", "RiskScore", "Ward"]
+__all__ = ["Alert", "AlertRule", "CaseReport", "EnvironmentalData", "FloodEvent", "HealthFacility", "LGA", "RiskScore", "StateCholeraRecord", "Ward"]
