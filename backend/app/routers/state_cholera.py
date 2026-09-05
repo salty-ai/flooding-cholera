@@ -179,7 +179,11 @@ def state_choropleth(
     """
     years_available = _years_available(db)
     if year is None:
-        year = years_available[0] if years_available else None
+        # Default to the most recent year that has an OFFICIAL NCDC year-end
+        # total (so the landing view is a complete, citable year rather than a
+        # partial in-progress one); fall back to the latest year with data.
+        with_official = [y for y in years_available if official_year_end(y) is not None]
+        year = (with_official or years_available or [None])[0]
 
     if year is None:
         return {
