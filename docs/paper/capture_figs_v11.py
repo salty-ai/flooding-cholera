@@ -5,6 +5,18 @@ OUT="/root/cholera_hod_tasks/figs_v11"
 import os; os.makedirs(OUT, exist_ok=True)
 BASE="https://cholera.abokiwise.ai"
 
+
+def close_sidebar(pg):
+    """Close the AI copilot side panel (defaults open on >=1024px) so figures show the page itself."""
+    pg.wait_for_timeout(500)
+    try:
+        if pg.evaluate("() => !!document.querySelector('aside, [class*=Sidebar], [data-testid=agent-sidebar]') && document.body.innerText.includes('Surveillance Assistant')"):
+            btn = pg.locator('button:has(span.material-symbols-outlined:text-is(\"smart_toy\"))').first
+            btn.click(timeout=5000); pg.wait_for_timeout(800)
+    except Exception as e:
+        print("close_sidebar:", str(e)[:80])
+    print("sidebar closed:", 'Surveillance Assistant' not in pg.inner_text('body'))
+
 with sync_playwright() as p:
     b=p.chromium.launch()
     ctx=b.new_context(viewport={'width':1600,'height':1000}, device_scale_factor=2)
@@ -12,6 +24,7 @@ with sync_playwright() as p:
 
     # Fig 4: national dashboard — top section (verified state tier) + KPIs
     pg.goto(BASE+"/", wait_until="networkidle", timeout=60000); pg.wait_for_timeout(6000)
+    close_sidebar(pg)
     pg.screenshot(path=f"{OUT}/fig4_dashboard_national_tier.png")
 
     # Fig 4b: drill-down open (FCT -> click a large state), scrolled to panel
@@ -28,15 +41,18 @@ with sync_playwright() as p:
 
     # Fig 9: scroll to LGA risk map + correlation panel (heuristic tier)
     pg.goto(BASE+"/", wait_until="networkidle", timeout=60000); pg.wait_for_timeout(5000)
+    close_sidebar(pg)
     el=pg.query_selector('h3:has-text("heuristic tier")'); el.scroll_into_view_if_needed(); pg.evaluate("window.scrollBy(0,-80)"); pg.wait_for_timeout(1200)
     pg.screenshot(path=f"{OUT}/fig9_heuristic_tier_riskmap.png")
 
     # Fig 5: full-screen map view
     pg.goto(BASE+"/map", wait_until="networkidle", timeout=60000); pg.wait_for_timeout(5000)
+    close_sidebar(pg)
     pg.screenshot(path=f"{OUT}/fig5_map_view.png")
 
     # Fig 10: alerts page
     pg.goto(BASE+"/alerts", wait_until="networkidle", timeout=60000); pg.wait_for_timeout(4000)
+    close_sidebar(pg)
     pg.screenshot(path=f"{OUT}/fig10_alerts.png")
     print("alerts text:", pg.inner_text('body')[:300].replace('\n',' | '))
 
@@ -49,6 +65,7 @@ with sync_playwright() as p:
 
     # Fig 12: agent explorer
     pg.goto(BASE+"/agent-explorer", wait_until="networkidle", timeout=60000); pg.wait_for_timeout(4000)
+    close_sidebar(pg)
     pg.screenshot(path=f"{OUT}/fig12_agent_explorer.png")
     b.close()
 print("done")
