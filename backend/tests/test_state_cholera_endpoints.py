@@ -47,9 +47,11 @@ def seeded_states(db_session):
     return db_session
 
 
-def test_choropleth_defaults_to_latest_year(sqlite_client, seeded_states):
+def test_choropleth_defaults_to_latest_year_with_official_total(sqlite_client, seeded_states):
+    # 2024 is the latest year with data but has no official NCDC year-end total;
+    # the landing view should open on the latest *citable* year (2021).
     body = sqlite_client.get("/api/states/choropleth").json()
-    assert body["year"] == 2024
+    assert body["year"] == 2021
     assert body["years_available"] == [2024, 2021]
 
 
