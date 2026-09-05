@@ -221,3 +221,82 @@ export interface AlertStats {
   acknowledged: number;
   by_type: Record<string, number>;
 }
+
+/* ------------------------------------------------------------------ *
+ * Verified national tier — state-level NCDC situation-report extraction
+ * ------------------------------------------------------------------ */
+
+/** One state's year-end (latest analysis-safe epi-week) cumulative snapshot. */
+export interface StateChoroplethRow {
+  state: string;
+  adm1_name: string | null;
+  adm1_pcode: string | null;
+  suspected_cases: number | null;
+  deaths: number | null;
+  cfr: number | null;
+  epi_week: number;
+  source_url: string | null;
+  confidence: string | null;
+  n_reports: number;
+}
+
+export interface StateChoroplethResponse {
+  year: number | null;
+  years_available: number[];
+  states: StateChoroplethRow[];
+  count: number;
+  unmatched_states: string[];
+  evidence_label: string;
+}
+
+/** One extracted row — exactly as published in a single NCDC situation report. */
+export interface StateCholeraRecord {
+  year: number;
+  epi_week: number;
+  month: string | null;
+  report_date: string | null;
+  suspected_cases: number | null;
+  deaths: number | null;
+  cfr: number | null;
+  confidence: string | null;
+  extraction_method: string | null;
+  monotonic_ok: boolean;
+  source_url: string | null;
+}
+
+export interface StateRecordsResponse {
+  state: string;
+  requested_state: string;
+  year: number | null;
+  count: number;
+  records: StateCholeraRecord[];
+  note: string;
+}
+
+/**
+ * `dataset_sum_*` (what we extracted) and `official_*` (what NCDC published)
+ * are separate on purpose — they are not the same measurement.
+ */
+export interface NationalYearSummary {
+  year: number;
+  dataset_sum_cases: number;
+  dataset_sum_deaths: number;
+  dataset_cfr: number | null;
+  states_reporting: number;
+  latest_epi_week: number | null;
+  official_cases: number | null;
+  official_deaths: number | null;
+  official_cfr: number | null;
+  official_epi_week: number | null;
+  official_citation: string | null;
+  official_source_url: string | null;
+  coverage_note: string;
+  note: string;
+}
+
+export interface NationalSummaryResponse {
+  years: NationalYearSummary[];
+  years_available: number[];
+  evidence_label: string;
+  as_of: string;
+}

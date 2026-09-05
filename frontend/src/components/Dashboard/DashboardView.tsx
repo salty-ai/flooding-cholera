@@ -7,6 +7,7 @@ import { FloodEventsRail } from './FloodEventsRail';
 import { CorrelationChart } from './CorrelationChart';
 import { RiskBreakdownChart } from './RiskBreakdownChart';
 import ChoroplethMap from '../Map/ChoroplethMap';
+import { NationalBurdenSection } from '../National/NationalBurdenSection';
 import { ErrorBoundary } from '../common/ErrorBoundary';
 
 export default function DashboardView() {
@@ -23,6 +24,12 @@ export default function DashboardView() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Verified national tier — state-level NCDC data, independent of the
+          LGA-resolution risk model below. */}
+      <ErrorBoundary>
+        <NationalBurdenSection />
+      </ErrorBoundary>
+
       <DateRangeSelector maxDataDate={dashboard?.max_data_date ?? null} />
       <DashboardKpiRow summary={dashboard} />
 
