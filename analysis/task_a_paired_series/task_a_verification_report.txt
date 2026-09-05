@@ -1,0 +1,78 @@
+TASK A VERIFICATION REPORT — flood-exposure / real-case paired series (v2)
+Generated: 2026-09-05T16:39:43.122242+00:00
+
+WHAT THE HOD ASKED FOR
+  Re-run the flood-exposure correlation inputs against the REAL multi-year
+  Cross River case data (final_state_cholera_dataset_v2.csv), for the 4 pilot
+  LGAs, across every date Cross River appears (2021-2024), and deliver the
+  paired series (date, flood exposure metric, real case count) as raw CSV.
+
+INPUTS (all verified artifacts)
+  Cases: final_state_cholera_dataset_v2.csv — 46 Cross River observations,
+    2021 wk24-47, 2022 wk30-52, 2023 wk9-52, 2024 wk8-39. STATE-level
+    CUMULATIVE suspected cases/deaths from NCDC Cholera SitReps (84/93 parsed,
+    arithmetic CFR integrity gate, source PDF URL per row, monotonic_ok flags).
+    NO 2025 Cross River rows exist in the verified dataset (NCDC sitreps after
+    2024 wk39 stopped reporting Cross River in the parsed set).
+  Flood: Groundsource 2026 archive (Zenodo 18647054), 2,646,302 dated polygons
+    2000-2026 (WKB/WGS84). Re-encoded to plain parquet because DuckDB 1.5.5's
+    GeoParquet reader rejects the file's geo metadata (geometry preserved byte-exact).
+  Boundaries: GRID3 Admin-2 (nigeria_lgas_774.geojson) — the same source as the
+    paper's Table 4/5. NOTE: backend/data/cross_river_lgas.geojson is a DIFFERENT
+    boundary file; it yields 248 join pairs and WRONG Biase counts vs table5.
+    GRID3 is the table5-consistent source and is used here.
+
+METHOD
+  Spatial join: exact ST_Intersects(flood polygon, LGA polygon) after bbox
+  overlap prefilter. Areas: geodesic spheroid km2 of the clipped intersection.
+  Reporting period: ISO epi week (Mon-Sun) of each SitRep observation.
+  Exposure metrics per (observation x LGA):
+    - events + union km2 overlapping the epi week itself (lag-0 week)
+    - trailing 4/8/12-week windows ending at the epi week (lag scan)
+    - events + union km2 in the observation's calendar month
+    - cumulative events + union km2 from archive start to the epi week
+
+VERIFICATION GATE vs table5_flood_exposure.csv (all-time 2000-2026)
+        pilot_lga  events_2000_2026  years_with_flooding  union_area_km2
+          Bakassi                 2                    2            4.17
+            Biase                35                   11         1271.27
+Calabar Municipal               136                   17          129.84
+           Yakurr                18                    8            6.09
+
+  event counts match table5: True
+  years-with-flooding match:  True
+  (event, LGA) pairs: 191  <- the paper's '191 distinct flood events over the pilot footprint'
+  union area Yakurr: computed 6.09 vs table5 6.11 (diff 0.33%)
+  union area Biase: computed 1271.27 vs table5 1277.8 (diff 0.51%)
+  union area Calabar Municipal: computed 129.84 vs table5 130.71 (diff 0.67%)
+  union area Bakassi: computed 4.17 vs table5 4.2 (diff 0.71%)
+
+KEY SUBSTANTIVE FINDINGS OF THE RE-RUN (stated plainly, for the paper's honesty)
+  1. ZERO flood events were recorded by the archive in the 4 pilot LGAs during
+     2021 — the year of the sentinel outbreak. The paper's Table 4/5 'pre-outbreak
+     events 2011-2020' framing remains the only exposure context for 2021.
+  2. Pilot-LGA flood events during the verified case window are sparse and real:
+     2020: 3 events (pre-series), 2022: 14, 2023: 2, 2024: 4. Biase and Calabar
+     Municipal carry nearly all of the exposure; Yakurr has 1 event (2024-12);
+     Bakassi has none after 2000s records.
+  3. Case counts are STATE-level cumulative; per-LGA cases exist only for the
+     2021 sentinel line-list (column provided). Any correlation therefore pairs
+     state-level case increments with LGA-level exposure — a limitation to
+     disclose, consistent with the paper's two-tier evidence discipline.
+  4. The trailing 4/8/12-week windows exist so lag correlation can be run at
+     several offsets; no statistics were computed here (HOD's lane).
+
+OUTPUTS
+  paired_series_crossriver_2021_2024.csv — 184 rows (46 obs x 4 LGAs), 31 cols:
+    keys: year, epi_week, week_start/end, month, lga
+    exposure: 12 flood metrics (per-window event counts + union km2, cumulative)
+    cases: state cum suspected/deaths/CFR, new-since-prev-obs, gap weeks,
+            2021 sentinel per-LGA cases
+    provenance: layout, confidence, extraction method, source URL, monotonic_ok
+  flood_events_pilot_lgas_2000_2026.csv — 191 (event x LGA) rows: uuid, dates,
+    archive area, clipped intersection km2. Full re-derivation source.
+  a_build_paired_series_v2.py — this script (exact reproduction, deterministic).
+
+REPRODUCTION
+  python3 a_build_paired_series_v2.py   (needs: duckdb+spatial, shapely, pandas;
+  input parquet at /root/cholera_hod_tasks/groundsource_plain.parquet)

@@ -1,0 +1,19 @@
+{
+  "timestamp_utc": "2026-09-05T19:21:13.280344+00:00",
+  "provider": "nvidia_nim",
+  "model": "nvidia_nim/nvidia/nemotron-3-super-120b-a12b",
+  "provider_status": {
+    "google": false,
+    "anthropic": true,
+    "deepseek": true,
+    "openrouter": true,
+    "nvidia_nim": true
+  },
+  "chosen_provider_key_present": true,
+  "live_probe": {
+    "provider": "nvidia_nim",
+    "model": "nvidia_nim/nvidia/nemotron-3-super-120b-a12b",
+    "ok": true,
+    "response": "ModelResponse(id='chatcmpl-baab990c-460e-4130-8314-668fbcc0463c', created=1788636074, model='nvidia_nim/nvidia/nemotron-3-super-120b-a12b', object='chat.completion', system_fingerprint=None, choices=[Choices(finish_reason='length', index=0, message=Message(content='Okay', role='assistant', tool_call"
+  }
+}
