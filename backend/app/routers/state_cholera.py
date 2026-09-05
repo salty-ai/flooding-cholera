@@ -233,10 +233,11 @@ def state_boundaries():
     """
     if not boundaries_available():
         raise HTTPException(status_code=404, detail="State boundary file is not available")
+    # No `filename=`: that would set Content-Disposition: attachment, which is
+    # wrong for a layer the map fetches inline.
     return FileResponse(
         BOUNDARIES_PATH,
         media_type="application/geo+json",
-        filename="nigeria_states.geojson",
         headers={"Cache-Control": "public, max-age=86400, immutable"},
     )
 
