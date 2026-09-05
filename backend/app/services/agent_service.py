@@ -63,8 +63,12 @@ def provider_status() -> dict[str, bool]:
 
 def _model_name_for_litellm(provider: str, model: str) -> str:
     """Build the model string litellm expects for the given provider."""
-    # If the model already contains a slash it is already fully qualified
-    if "/" in model:
+    # A model that already carries a litellm provider prefix is fully qualified.
+    # NOTE: a bare slash is NOT sufficient — NIM/OpenRouter model ids such as
+    # "nvidia/nemotron-3-super-120b-a12b" or "meta-llama/llama-4-maverick" are
+    # org/model names and still need the provider prefix.
+    _LITELLM_PREFIXES = ("gemini/", "deepseek/", "openrouter/", "nvidia_nim/", "anthropic/")
+    if model.startswith(_LITELLM_PREFIXES):
         return model
 
     if provider == "google":
