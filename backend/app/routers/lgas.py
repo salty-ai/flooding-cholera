@@ -281,16 +281,17 @@ def get_lga(request: Request, lga_id: int, db: Session = Depends(get_db)):
     if not lga:
         raise HTTPException(status_code=404, detail="LGA not found")
 
-    response = LGAWithGeometry.model_validate(lga)
-
-    # Convert PostGIS geometry to GeoJSON
+    # Convert PostGIS geometry to GeoJSON BEFORE validation: model_validate would
+    # otherwise try to coerce the raw WKBElement into `geometry: dict` and 500.
+    geometry = None
     if lga.geometry is not None:
         try:
-            response.geometry = mapping(to_shape(lga.geometry))
+            geometry = mapping(to_shape(lga.geometry))
         except Exception:
-            response.geometry = None
+            geometry = None
 
-    return response
+    base = LGAResponse.model_validate(lga)
+    return LGAWithGeometry(**base.model_dump(), geometry=geometry)
 
 
 @router.get("/{lga_id}/risk-scores", response_model=List[RiskScoreResponse])
