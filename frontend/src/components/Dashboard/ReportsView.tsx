@@ -73,13 +73,9 @@ function OverviewReport() {
           <p className="text-[#637588] text-xs font-medium mb-1">Total LGAs</p>
           <p className="text-2xl font-bold text-[#111518]">{dashboard?.total_lgas ?? 0}</p>
         </div>
-        <div className="bg-white rounded-xl border border-[#e6e8eb] p-4">
-          <p className="text-[#637588] text-xs font-medium mb-1">Cases (30d)</p>
-          <p className="text-2xl font-bold text-alert-orange">{dashboard?.total_cases || 0}</p>
-        </div>
-        <div className="bg-white rounded-xl border border-[#e6e8eb] p-4">
-          <p className="text-[#637588] text-xs font-medium mb-1">Deaths (30d)</p>
-          <p className="text-2xl font-bold text-red-600">{dashboard?.total_deaths || 0}</p>
+        <div className="bg-white rounded-xl border border-dashed border-[#e6e8eb] p-4 col-span-2">
+          <p className="text-[#637588] text-xs font-medium mb-1">LGA case counts</p>
+          <p className="text-sm text-[#111518] leading-snug">Not shown. The national LGA-month panel was excluded as unverifiable; case burden is reported at state level in the National Burden section (verified NCDC), and at LGA level only for the Cross River 2021 sentinel pilot.</p>
         </div>
         <div className="bg-white rounded-xl border border-[#e6e8eb] p-4">
           <p className="text-[#637588] text-xs font-medium mb-1">Avg Rainfall</p>
@@ -201,21 +197,9 @@ function LGAReport() {
 
       {/* Stats Row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-[#e6e8eb] p-4">
-          <p className="text-[#637588] text-xs font-medium mb-1">Total Cases</p>
-          <p className="text-2xl font-bold text-[#111518]">{analytics?.total_cases || 0}</p>
-        </div>
-        <div className="bg-white rounded-xl border border-[#e6e8eb] p-4">
-          <p className="text-[#637588] text-xs font-medium mb-1">Deaths</p>
-          <p className="text-2xl font-bold text-alert-orange">{analytics?.total_deaths || 0}</p>
-        </div>
-        <div className="bg-white rounded-xl border border-[#e6e8eb] p-4">
-          <p className="text-[#637588] text-xs font-medium mb-1">CFR</p>
-          <p className="text-2xl font-bold text-[#111518]">
-            {analytics && analytics.total_cases > 0
-              ? ((analytics.total_deaths / analytics.total_cases) * 100).toFixed(1)
-              : 0}%
-          </p>
+        <div className="bg-white rounded-xl border border-dashed border-[#e6e8eb] p-4 col-span-2 md:col-span-3">
+          <p className="text-[#637588] text-xs font-medium mb-1">LGA case counts</p>
+          <p className="text-sm text-[#111518] leading-snug">Not shown. The national LGA-month panel was excluded as unverifiable; case burden is reported at state level in the National Burden section (verified NCDC), and at LGA level only for the Cross River 2021 sentinel pilot.</p>
         </div>
         <div className="bg-white rounded-xl border border-[#e6e8eb] p-4">
           <p className="text-[#637588] text-xs font-medium mb-1">Avg Risk</p>
