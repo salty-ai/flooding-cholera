@@ -192,10 +192,6 @@ export default function LGAReportPage() {
     : [];
 
   // CFR calculation
-  const cfr = analytics && analytics.total_cases > 0 
-    ? ((analytics.total_deaths / analytics.total_cases) * 100).toFixed(1)
-    : '0.0';
-
   // Pie chart data for risk distribution over time
   const riskDistribution = [
     { name: 'High Risk Days', value: riskTrendData.filter(d => d.risk >= 70).length, color: RISK_COLORS.red.hex },
@@ -276,18 +272,18 @@ export default function LGAReportPage() {
             {/* Stats Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <StatCard
-                title="Total Cases"
-                value={analytics?.total_cases || 0}
+                title="LGA Cases"
+                value="—"
                 icon="coronavirus"
                 iconColor="orange"
-                subtitle="Last 90 days"
+                subtitle="Not LGA-resolved · see National Burden (state tier)"
               />
               <StatCard
-                title="Total Deaths"
-                value={analytics?.total_deaths || 0}
+                title="LGA Deaths"
+                value="—"
                 icon="skull"
                 iconColor="red"
-                subtitle={`CFR: ${cfr}%`}
+                subtitle="Sentinel pilot LGAs only (Cross River 2021)"
               />
               <StatCard
                 title="Avg Risk Score"
