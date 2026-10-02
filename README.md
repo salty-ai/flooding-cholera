@@ -1,328 +1,97 @@
-# Cholera Environmental Surveillance System
+# Nigeria EO-Enabled Environmental Health Intelligence Hub — Cholera Surveillance
 
-An integrated surveillance system for monitoring cholera risk in Cross River State, Nigeria. This application combines satellite environmental data (flooding, rainfall) with epidemiological case data to calculate and visualize cholera outbreak risk at the LGA (Local Government Area) level.
+Earth Observation–enabled cholera surveillance platform for Nigeria: a FastAPI/PostGIS backend,
+React dashboard, Google Earth Engine covariate pipeline, and a measured, schema-grounded AI
+Surveillance Copilot. Developed at NASRDA (National Space Research and Development Agency)
+Mission Planning & Satellite Data Management.
 
-## Features
+**Live demo:** https://cholera.abokiwise.ai (mobile-friendly; demo auto-login)
 
-- **Interactive Risk Map**: Choropleth map showing all 18 LGAs color-coded by risk level
-- **Real-time Risk Scoring**: Algorithm combining flood indicators, rainfall, case counts, and vulnerability factors
-- **Time-series Analytics**: Charts showing cases, deaths, rainfall, and risk trends over time
-- **Data Upload**: CSV/Excel file upload for case and environmental data
-- **Satellite Integration**: Google Earth Engine and NASA GPM integration for environmental data
-- **LGA Search**: Quick search and selection of LGAs
+**Manuscript:** `docs/paper/CHOLERA_PAPER_V9_GEE.docx` / `.pdf`
 
-## Tech Stack
+## What this is
 
-| Layer | Technology |
-|-------|------------|
-| Frontend | React 18, Vite, TypeScript, Tailwind CSS, Leaflet, Recharts |
-| Backend | Python 3.11+, FastAPI, SQLAlchemy, GeoAlchemy2 |
-| Database | PostgreSQL with PostGIS |
-| Satellite APIs | Google Earth Engine, NASA GPM, OpenWeatherMap |
+A surveillance platform built on two strictly separated evidence tiers:
 
-## Prerequisites
+- **National tier — state-level official data.** 1,233 verified state-level cumulative
+  cholera records (2021–2025), systematically extracted from 84 of 93 published NCDC
+  Cholera Situation Reports (90.3% coverage). Every row passed an arithmetic integrity
+  gate (deaths/cases ×100 must reconcile with the report's stated CFR within 0.15pp),
+  carries a confidence tier, and is traceable to its exact source PDF.
+- **Sentinel tier — LGA-level pilot.** A 2021 Cross River line-list (74 suspected
+  cases, 4 deaths, 1 culture-confirmed) across four LGAs (Yakurr, Biase, Calabar
+  Municipal, Bakassi), joined to GRID3 Admin-2 boundaries.
 
-- Python 3.11 or higher
-- Node.js 18 or higher
-- PostgreSQL 14+ with PostGIS extension
-- (Optional) Google Earth Engine service account
-- (Optional) NASA Earthdata account
-- (Optional) OpenWeatherMap API key
+No synthetic or simulated epidemiological values anywhere. A candidate national LGA
+panel was inspected, found irreconcilable with official totals, and excluded in full.
 
-## Quick Start
-
-### 1. Clone and Setup
-
-```bash
-cd flooding-cholera
-```
-
-### 2. Database Setup
-
-Install PostgreSQL and PostGIS, then create the database:
-
-```bash
-# macOS (using Homebrew)
-brew install postgresql postgis
-
-# Start PostgreSQL
-brew services start postgresql
-
-# Create database
-createdb cholera_surveillance
-
-# Enable PostGIS extension
-psql cholera_surveillance -c "CREATE EXTENSION postgis;"
-```
-
-### 3. Backend Setup
-
-```bash
-cd backend
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Copy and configure environment
-cp .env.example .env
-# Edit .env with your database credentials and API keys
-
-# Seed the database with sample data
-python -m app.seed_database
-
-# Start the backend server
-uvicorn app.main:app --reload --port 8000
-```
-
-The API will be available at http://localhost:8000
-
-- API docs: http://localhost:8000/docs
-- Health check: http://localhost:8000/health
-
-### 4. Frontend Setup
-
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Start development server
-npm run dev
-```
-
-The frontend will be available at http://localhost:5173
-
-## Configuration
-
-### Environment Variables
-
-Create a `.env` file in the `backend` directory:
-
-```env
-# Database
-DATABASE_URL=postgresql://postgres:postgres@localhost:5432/cholera_surveillance
-
-# Google Earth Engine (optional)
-GEE_SERVICE_ACCOUNT_EMAIL=your-service-account@your-project.iam.gserviceaccount.com
-GEE_PRIVATE_KEY_PATH=./gee-private-key.json
-
-# NASA Earthdata (optional)
-NASA_EARTHDATA_USERNAME=your-username
-NASA_EARTHDATA_PASSWORD=your-password
-
-# OpenWeatherMap (optional)
-OPENWEATHERMAP_API_KEY=your-api-key
-
-# App settings
-DEBUG=true
-CORS_ORIGINS=http://localhost:5173,http://localhost:3000
-```
-
-### Satellite API Credentials
-
-#### Google Earth Engine
-1. Create a GCP project: https://console.cloud.google.com/
-2. Enable Earth Engine API
-3. Create a service account with Earth Engine access
-4. Download the JSON key and place it in the backend directory
-5. Register the service account: https://signup.earthengine.google.com/
-
-#### NASA Earthdata
-1. Register at: https://urs.earthdata.nasa.gov/
-2. Add credentials to your `.env` file
-
-#### OpenWeatherMap
-1. Register at: https://openweathermap.org/api
-2. Get a free API key
-3. Add to your `.env` file
-
-## Project Structure
+## Repository layout
 
 ```
-flooding-cholera/
-├── backend/
-│   ├── app/
-│   │   ├── main.py              # FastAPI application
-│   │   ├── config.py            # Settings
-│   │   ├── database.py          # Database connection
-│   │   ├── models/              # SQLAlchemy models
-│   │   ├── routers/             # API endpoints
-│   │   ├── services/            # Business logic
-│   │   ├── schemas/             # Pydantic schemas
-│   │   └── seed_database.py     # Database seeder
-│   ├── data/
-│   │   └── cross_river_lgas.geojson
-│   └── requirements.txt
-├── frontend/
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── Map/             # Leaflet map components
-│   │   │   ├── Dashboard/       # Dashboard & charts
-│   │   │   ├── Search/          # LGA search
-│   │   │   └── Upload/          # Data upload
-│   │   ├── hooks/               # React hooks
-│   │   ├── store/               # Zustand store
-│   │   └── types/               # TypeScript types
-│   └── package.json
-└── README.md
+backend/            FastAPI + SQLAlchemy + PostGIS
+  app/              models, routers, services (Earth Engine, risk, agents)
+  alembic/          migrations
+  data/
+    boundaries/     GRID3 774-LGA + state GeoJSON
+    cholera_real/   verified v2 NCDC state dataset + provenance/CHANGELOG
+  tests/            pytest suite (adapters, routers, services, correlation)
+frontend/           React + Vite + Tailwind dashboard (mobile-responsive)
+analysis/gee/       live GEE extraction scripts + frozen pilot covariates CSV
+deploy/             VPS setup, systemd unit, nginx site, smoke test
+docs/paper/        manuscript (V9) + figures
 ```
 
-## API Endpoints
+## Data sources
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/api/lgas` | GET | List all LGAs |
-| `/api/lgas/geojson` | GET | Get LGAs as GeoJSON with risk scores |
-| `/api/lgas/dashboard` | GET | Get dashboard summary |
-| `/api/lgas/{id}` | GET | Get single LGA details |
-| `/api/lgas/{id}/cases` | GET | Get case history for LGA |
-| `/api/analytics/lga/{id}` | GET | Get analytics for LGA |
-| `/api/analytics/risk-scores` | GET | Get all current risk scores |
-| `/api/upload` | POST | Upload CSV/Excel data |
-| `/api/risk-scores/calculate` | POST | Trigger risk recalculation |
-| `/api/satellite/latest` | GET | Get latest satellite data |
+| Layer | Source | Status |
+|---|---|---|
+| National cholera burden | NCDC Cholera SitReps 2021–2025 (84/93 parsed) | Verified state-level series (`backend/data/cholera_real/final_state_cholera_dataset_v2.csv`) |
+| Sentinel line-list | Cross River SMoH 2021 line-list | Ingested; pilot validation only |
+| Administrative boundaries | GRID3 Nigeria Admin-2 (774 LGAs) | Observed |
+| Precipitation | NASA GPM-IMERG v07 via Google Earth Engine | Computed live for pilot LGAs (`analysis/gee/`) |
+| Surface water (NDWI) | Sentinel-2 SR Harmonized via GEE | Computed live |
+| Vegetation (NDVI) | Sentinel-2 + Landsat-8 C2 L2 (cross-sensor) | Computed live |
+| Flood history | Groundsource dated flood archive (2.65M polygons, 2000–2026) | 191 events joined to pilot LGAs |
+| Health facilities | FMOH registry (46,146 records, source count) | Observed (unvalidated) |
 
-## Risk Calculation
-
-The risk score is calculated using a weighted formula:
-
-```
-Risk Score = (Flood × 0.4) + (Rainfall × 0.2) + (Cases × 0.3) + (Vulnerability × 0.1)
-```
-
-**Risk Levels:**
-- 🟢 Green (Low): Score < 0.3
-- 🟡 Yellow (Medium): Score 0.3 - 0.6
-- 🔴 Red (High): Score > 0.6
-
-**Components:**
-- **Flood Score**: Based on NDWI and flood extent from satellite imagery
-- **Rainfall Score**: Based on 7-day cumulative precipitation
-- **Case Score**: Based on recent cholera cases and deaths
-- **Vulnerability Score**: Based on water/sanitation infrastructure coverage
-
-## Uploading Data
-
-### Case Data CSV Format
-
-```csv
-lga_name,report_date,new_cases,deaths,suspected_cases,confirmed_cases
-Calabar Municipal,2024-01-15,5,0,3,2
-Odukpani,2024-01-15,3,1,2,1
-```
-
-### Environmental Data CSV Format
-
-```csv
-lga_name,observation_date,rainfall_mm,ndwi,flood_observed
-Calabar Municipal,2024-01-15,25.5,0.35,true
-Odukpani,2024-01-15,20.0,0.25,false
-```
-
-## Data Sources & Setup
-
-The system has nationwide coverage: all 774 LGAs across 37 states plus the Federal Capital Territory (FCT). The datasets and commands below populate the database with real boundaries, flood observations, and cholera case records.
-
-### Data Sources
-
-- **LGA boundaries (nationwide):** Nigerian Local Government Area administrative boundaries from the HDX COD-AB (Common Operational Dataset - Administrative Boundaries) dataset. These geometries underpin the choropleth map and all LGA-based joins.
-- **Groundsource flood data:** Flood extent observations from the Groundsource dataset on Zenodo (`https://zenodo.org/records/18647054`, ~667 MB, licensed CC BY 4.0). Provided as a Parquet file and imported via the admin endpoint described below.
-- **Real cholera cases:** Epidemiological case data for 2020–2025 at `backend/data/cholera_real/nigeria_cholera_2020_2025.csv`. This CSV is imported by the cholera seed command.
-
-### Setup Commands
-
-From the `backend` directory (with the virtual environment activated), run the following to load nationwide data and recompute risk scores:
-
-```bash
-# 1. Seed default alert rules
-python -m app.seed_alert_rules
-
-# 2. Import the real cholera CSV into the database
-python -m app.seed_cholera
-
-# 3. Backfill risk v2.0 scores across the date range
-python -m app.backfill_risks --start 2020-01-01 --end 2025-12-01
-```
-
-### Groundsource Import
-
-To import a Groundsource Parquet file after the server is running, call the admin endpoint:
-
-```bash
-curl -X POST http://localhost:8000/api/admin/data/groundsource-import \
-  -H "Content-Type: application/json" \
-  -d '{"path": "/absolute/path/to/groundsource.parquet"}'
-```
-
-The sibling endpoint `POST /api/admin/data/cholera-import` (same body shape, pointing at a cholera CSV) is also available for ad-hoc imports.
-
-### `SEED_DEMO` Flag
-
-The `SEED_DEMO` environment variable controls whether demo/seed data is loaded at startup. Set `SEED_DEMO=false` (or unset it) for production deployments that should rely solely on the real datasets above; leave it enabled for local development and quick demos.
-
-## Development
-
-### Running Tests
-
-```bash
-# Backend tests
-cd backend
-pytest
-
-# Frontend tests
-cd frontend
-npm run test
-```
-
-### Code Formatting
+## Quick start
 
 ```bash
 # Backend
 cd backend
-black app/
-isort app/
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env          # set DATABASE_URL, provider keys as needed
+alembic upgrade head
+uvicorn app.main:app --reload  # http://localhost:8000/docs
 
 # Frontend
-cd frontend
-npm run lint
+cd ../frontend
+npm install
+npm run dev                    # http://localhost:5173
+
+# Seed verified state-level data (optional)
+python -m app.seed_state_cholera
 ```
 
-## Cross River State LGAs
+GEE covariates: `analysis/gee/extract_gee_covariates.py` (requires `earthengine-api`
+and an Earth Engine–registered project; see the file's provenance notes).
 
-The system monitors all 18 Local Government Areas:
+## Deployment
 
-1. Abi
-2. Akamkpa
-3. Akpabuyo
-4. Bakassi
-5. Bekwarra
-6. Biase
-7. Boki
-8. Calabar Municipal
-9. Calabar South
-10. Etung
-11. Ikom
-12. Obanliku
-13. Obubra
-14. Obudu
-15. Odukpani
-16. Ogoja
-17. Yakuur
-18. Yala
+`deploy/` contains the working production assets from the live demo host:
+`setup_vps.sh` (dependency + DB + service bootstrap), `cholera-backend.service`
+(systemd), `cholera-nginx.conf` (TLS site), `smoke_e2e.sh`.
 
-## License
+## Testing
 
-This project is developed for public health surveillance purposes. Please ensure appropriate data handling and privacy practices when deploying with real epidemiological data.
+```bash
+cd backend && pytest
+```
 
-## Acknowledgments
+## Attribution
 
-- Nigeria Centre for Disease Control (NCDC)
-- Cross River State Ministry of Health
-- Google Earth Engine
-- NASA Global Precipitation Measurement
-# Trigger redeploy Sun Jan 25 00:52:06 WAT 2026
+NASRDA Mission Planning and Satellite Data Management. Manuscript citation:
+Warekuromor T., Olumide A. M., & Umar Y. T. (2026). *Development and Pilot Validation
+of a Scalable Earth Observation-Enabled Environmental Health Intelligence Hub for
+Cholera Surveillance in Nigeria.* Manuscript V9.

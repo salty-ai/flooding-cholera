@@ -9,5 +9,6 @@ from app.routers.agent import router as agent_router
 from app.routers.admin_data import router as admin_data_router
 from app.routers.reports import router as reports_router
 from app.routers.flood_events import router as flood_events_router
+from app.routers.state_cholera import router as state_cholera_router
 
-__all__ = ["lgas_router", "analytics_router", "upload_router", "satellite_router", "alerts_router", "facilities_router", "agent_router", "admin_data_router", "reports_router", "flood_events_router"]
+__all__ = ["lgas_router", "analytics_router", "upload_router", "satellite_router", "alerts_router", "facilities_router", "agent_router", "admin_data_router", "reports_router", "flood_events_router", "state_cholera_router"]
