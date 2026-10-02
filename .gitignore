@@ -110,3 +110,5 @@ backend/data/agent_uploads/
 backend/data/groundsource_*.parquet
 /data/groundsource_*.parquet
 frontend/public/*.xlsx
+# Large duplicate FMOH dump (CSV is the committed source of truth)
+backend/data/external_real/fmoh_nigeriahealthfacilities.json.json

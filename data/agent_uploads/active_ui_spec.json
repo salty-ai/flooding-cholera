@@ -1,0 +1,53 @@
+{
+  "title": "Cross River 2021 Sentinel Pilot \u2014 Cases and Deaths by LGA",
+  "description": "Aggregated line-list for the Cross River sentinel pilot (74 cases, 4 deaths across four LGAs).",
+  "file_path": "data/agent_uploads/crossriver_2021_pilot_linelist_agg.csv",
+  "widgets": [
+    {
+      "type": "chart",
+      "title": "Total Cases by LGA",
+      "span": 6,
+      "config": {
+        "chartType": "bar",
+        "xAxisKey": "LGA",
+        "series": [
+          {
+            "key": "Cases",
+            "label": "Cases",
+            "color": "#2563eb"
+          }
+        ]
+      }
+    },
+    {
+      "type": "chart",
+      "title": "Total Deaths by LGA",
+      "span": 6,
+      "config": {
+        "chartType": "bar",
+        "xAxisKey": "LGA",
+        "series": [
+          {
+            "key": "Deaths",
+            "label": "Deaths",
+            "color": "#dc2626"
+          }
+        ]
+      }
+    }
+  ],
+  "filters": [
+    {
+      "key": "LGA",
+      "label": "LGA"
+    },
+    {
+      "key": "Cases",
+      "label": "Cases"
+    },
+    {
+      "key": "Deaths",
+      "label": "Deaths"
+    }
+  ]
+}

@@ -281,16 +281,29 @@ def get_lga(request: Request, lga_id: int, db: Session = Depends(get_db)):
     if not lga:
         raise HTTPException(status_code=404, detail="LGA not found")
 
-    response = LGAWithGeometry.model_validate(lga)
-
-    # Convert PostGIS geometry to GeoJSON
+    geom_dict = None
     if lga.geometry is not None:
         try:
-            response.geometry = mapping(to_shape(lga.geometry))
+            geom_dict = mapping(to_shape(lga.geometry))
         except Exception:
-            response.geometry = None
+            geom_dict = None
 
-    return response
+    return LGAWithGeometry(
+        id=lga.id,
+        name=lga.name,
+        code=lga.code,
+        population=lga.population,
+        area_sq_km=lga.area_sq_km,
+        headquarters=lga.headquarters,
+        centroid_lat=lga.centroid_lat,
+        centroid_lon=lga.centroid_lon,
+        water_coverage_pct=lga.water_coverage_pct,
+        sanitation_coverage_pct=lga.sanitation_coverage_pct,
+        health_facilities_count=lga.health_facilities_count,
+        created_at=lga.created_at,
+        updated_at=lga.updated_at,
+        geometry=geom_dict
+    )
 
 
 @router.get("/{lga_id}/risk-scores", response_model=List[RiskScoreResponse])

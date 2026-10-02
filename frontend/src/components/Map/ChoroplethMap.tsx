@@ -16,8 +16,8 @@ const RISK_COLORS: Record<RiskLevel, string> = {
   unknown: '#6b7280',
 };
 
-const CROSS_RIVER_CENTER: [number, number] = [5.87, 8.59];
-const DEFAULT_ZOOM = 8;
+const NIGERIA_NATIONAL_CENTER: [number, number] = [9.082, 8.675];
+const DEFAULT_ZOOM = 6;
 
 function getStyle(riskLevel: RiskLevel): PathOptions {
   const color = RISK_COLORS[riskLevel] || RISK_COLORS.unknown;
@@ -317,7 +317,7 @@ export default function ChoroplethMap() {
   return (
     <div className="h-full w-full absolute inset-0">
       <MapContainer
-        center={CROSS_RIVER_CENTER}
+        center={NIGERIA_NATIONAL_CENTER}
         zoom={DEFAULT_ZOOM}
         className="h-full w-full"
         scrollWheelZoom={true}

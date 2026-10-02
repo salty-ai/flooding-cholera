@@ -1,0 +1,6 @@
+Year,Suspected_Cases,Deaths,CFR_Percent,States_Reporting,Coverage_Note,Source
+2021,111062,3604,3.2,33 states + FCT,Full-year cumulative (Epi Wk 52),"NCDC Cholera SitRep, Epi Week 52, 2021 (sitreps/0c333863612f362c6831d24b7b7bd513.pdf)"
+2022,23550,583,2.5,33 states,Cumulative to Epi Wk 47 (Jan-27 Nov 2022); 270 LGAs,"NCDC Cholera SitRep, Epi Wks 44-47, 2022"
+2023,3387,133,3.9,variable,Full year; -85% cases vs 2022 (NCDC),"NCDC Cholera SitRep, Epi Wks 48-52, 2023 (ReliefWeb)"
+2024,4809,156,3.2,35 states,Cumulative to 21 Jul 2024,NCDC Cholera SitRep 2024; PMC12482021
+2025,1307,34,2.6,"30 states, 98 LGAs",Cumulative to 20 Apr 2025,UNICEF Nigeria Flash Report / NCDC 2025

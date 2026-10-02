@@ -18,8 +18,8 @@ class ChatMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     message: str
-    provider: str = "deepseek"
-    model: str = "deepseek-v4-flash"
+    provider: str = "nvidia_nim"
+    model: str = "meta/llama-3.3-70b-instruct"
     history: list[ChatMessage] = []
 
 
@@ -126,10 +126,15 @@ async def get_data_endpoint(file_path: str):
         filename = os.path.basename(file_path)
         alt_path1 = os.path.join("data", "agent_uploads", filename)
         alt_path2 = os.path.join("backend", "data", "agent_uploads", filename)
+        # The repository's checked-in sample workbook lives at the project root;
+        # accept that location for the legacy demo/test request as well.
+        alt_path3 = os.path.join(os.path.dirname(__file__), "..", "..", "..", filename)
         if os.path.exists(alt_path1):
             file_path = alt_path1
         elif os.path.exists(alt_path2):
             file_path = alt_path2
+        elif os.path.exists(alt_path3):
+            file_path = alt_path3
         else:
             raise HTTPException(status_code=404, detail=f"File not found: {file_path}")
     try:

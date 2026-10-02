@@ -43,15 +43,25 @@ except ImportError:
 # ── Provider → env key mappings ────────────────────────────────────────────
 PROVIDER_ENV_KEYS = {
     "google":      "GEMINI_API_KEY",
+    "vertex":      "GOOGLE_APPLICATION_CREDENTIALS",
     "anthropic":   "ANTHROPIC_API_KEY",
     "deepseek":    "DEEPSEEK_API_KEY",
     "openrouter":  "OPENROUTER_API_KEY",
-    "nvidia_nim":  "NVIDIA_NIM_API_KEY",
+    "nvidia_nim":  "NVIDIA_API_KEY",  # actual env key (was NVIDIA_NIM_API_KEY) — fixed 2026-08-24
 }
 
 
+def _adc_available() -> bool:
+    """True if Google ADC / Vertex creds are usable (file path set and exists)."""
+    p = os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
+    return bool(p and os.path.exists(p))
+
+
 def _has_key(provider: str) -> bool:
-    """Return True if the API key for *provider* is set in the environment."""
+    """Return True if credentials for *provider* are configured in the environment."""
+    # google + vertex both authenticate through Vertex ADC in this deployment
+    if provider in ("vertex", "google"):
+        return _adc_available() or bool(os.environ.get("GEMINI_API_KEY"))
     env_key = PROVIDER_ENV_KEYS.get(provider)
     return bool(env_key and os.environ.get(env_key))
 
@@ -67,8 +77,20 @@ def _model_name_for_litellm(provider: str, model: str) -> str:
     if "/" in model:
         return model
 
+    # Map UI model ids to models actually available on our Vertex project
+    _VERTEX_ALIAS = {
+        "gemini-3.5-flash": "gemini-2.5-flash",
+        "gemini-3.6-flash": "gemini-2.5-flash",
+        "gemini-3.1-pro-preview": "gemini-2.5-pro",
+    }
+
     if provider == "google":
+        # No Gemini API key in this deployment → route Google models through Vertex ADC
+        if not os.environ.get("GEMINI_API_KEY") and _adc_available():
+            return f"vertex_ai/{_VERTEX_ALIAS.get(model, model)}"
         return f"gemini/{model}"
+    if provider == "vertex":
+        return f"vertex_ai/{_VERTEX_ALIAS.get(model, model)}"
     if provider == "deepseek":
         return f"deepseek/{model}"
     if provider == "openrouter":
@@ -193,8 +215,8 @@ class SurveillanceAgent:
 
     def __init__(
         self,
-        provider: str = "deepseek",
-        model: str = "deepseek-v4-flash",
+        provider: str = "nvidia_nim",
+        model: str = "meta/llama-3.3-70b-instruct",
         api_key: str | None = None,
         history: list[dict] | None = None,
     ):
@@ -411,7 +433,6 @@ class SurveillanceAgent:
             yield "thought", f"⚠️  No API key found for provider '{self.provider}' ({PROVIDER_ENV_KEYS.get(self.provider, 'N/A')}). Running in Mock Mode."
             yield "thought", f"Mock executing: provider={self.provider}, model={self.model}"
             if re.search(r"\b(visualize|ui|spec|dashboard|render)\b", prompt, re.IGNORECASE):
-                import os
                 import pandas as pd
 
                 file_path = None
@@ -628,11 +649,18 @@ class SurveillanceAgent:
             for turn in range(max_turns):
                 # On the last turn, force a final text response by not offering tools
                 active_tools = self._tools_schema() if turn < max_turns - 1 else None
+                _extra = {}
+                if model_str.startswith("vertex_ai/"):
+                    _extra = {
+                        "vertex_project": os.getenv("VERTEX_PROJECT") or os.getenv("GOOGLE_CLOUD_PROJECT"),
+                        "vertex_location": os.getenv("VERTEX_LOCATION", "global"),
+                    }
                 response = await litellm.acompletion(
                     model=model_str,
                     messages=messages,
                     tools=active_tools,
                     stream=True,
+                    **_extra,
                 )
 
                 tool_calls_acc: list[dict] = []
