@@ -17,7 +17,8 @@ from app.models import StateCholeraRecord
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_CSV = Path(__file__).resolve().parents[2] / "data" / "cholera_real" / "final_state_cholera_dataset_v2.csv"
+# app/seed_state_cholera.py -> parents[0] = app, parents[1] = backend
+DEFAULT_CSV = Path(__file__).resolve().parents[1] / "data" / "cholera_real" / "final_state_cholera_dataset_v2.csv"
 
 
 def epi_week_start(year: int, week: int) -> date:

@@ -207,18 +207,18 @@ export default function LGADetailPanel() {
             {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-3">
               <StatCard
-                title="Total Cases"
-                value={analytics?.total_cases || 0}
+                title="LGA Cases"
+                value="—"
                 icon="coronavirus"
                 iconColor="orange"
-                subtitle={`Last ${analyticsDays} days`}
+                subtitle="Not LGA-resolved · see National Burden (state tier)"
               />
               <StatCard
-                title="Total Deaths"
-                value={analytics?.total_deaths || 0}
+                title="LGA Deaths"
+                value="—"
                 icon="skull"
                 iconColor="red"
-                subtitle="Reported deaths"
+                subtitle="Sentinel pilot LGAs only (Cross River 2021)"
               />
               <StatCard
                 title="Avg Risk Score"

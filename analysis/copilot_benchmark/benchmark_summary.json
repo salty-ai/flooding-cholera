@@ -1,0 +1,124 @@
+{
+  "total_trials": 72,
+  "by_condition": {
+    "unconstrained": {
+      "n": 36,
+      "grounding_rate": 0.9167,
+      "lga_binding_rate": 0.9167,
+      "case_binding_rate": 0.9722,
+      "deaths_binding_rate": 0.5758,
+      "mock_mode_detected_count": 0,
+      "avg_latency_seconds": 23.677,
+      "infra_excluded_count": 0
+    },
+    "schema-grounded": {
+      "n": 36,
+      "grounding_rate": 1.0,
+      "lga_binding_rate": 1.0,
+      "case_binding_rate": 1.0,
+      "deaths_binding_rate": 0.3939,
+      "mock_mode_detected_count": 0,
+      "avg_latency_seconds": 22.673,
+      "infra_excluded_count": 0
+    }
+  },
+  "by_variant": {
+    "canonical": {
+      "n": 6,
+      "grounding_rate": 0.8333,
+      "lga_binding_rate": 0.8333,
+      "case_binding_rate": 0.8333,
+      "deaths_binding_rate": 0.5,
+      "infra_excluded_count": 0
+    },
+    "canonical_b": {
+      "n": 6,
+      "grounding_rate": 1.0,
+      "lga_binding_rate": 1.0,
+      "case_binding_rate": 1.0,
+      "deaths_binding_rate": 0.3333,
+      "infra_excluded_count": 0
+    },
+    "abbreviated_ncdc": {
+      "n": 6,
+      "grounding_rate": 1.0,
+      "lga_binding_rate": 1.0,
+      "case_binding_rate": 1.0,
+      "deaths_binding_rate": 0.6667,
+      "infra_excluded_count": 0
+    },
+    "abbreviated_ncdc_b": {
+      "n": 6,
+      "grounding_rate": 1.0,
+      "lga_binding_rate": 1.0,
+      "case_binding_rate": 1.0,
+      "deaths_binding_rate": 0.6667,
+      "infra_excluded_count": 0
+    },
+    "dirty_header": {
+      "n": 6,
+      "grounding_rate": 1.0,
+      "lga_binding_rate": 1.0,
+      "case_binding_rate": 1.0,
+      "deaths_binding_rate": 0.3333,
+      "infra_excluded_count": 0
+    },
+    "dirty_header_b": {
+      "n": 6,
+      "grounding_rate": 0.6667,
+      "lga_binding_rate": 0.6667,
+      "case_binding_rate": 1.0,
+      "deaths_binding_rate": 0.8333,
+      "infra_excluded_count": 0
+    },
+    "decoy_schema": {
+      "n": 6,
+      "grounding_rate": 1.0,
+      "lga_binding_rate": 1.0,
+      "case_binding_rate": 1.0,
+      "deaths_binding_rate": 0.3333,
+      "infra_excluded_count": 0
+    },
+    "decoy_schema_b": {
+      "n": 6,
+      "grounding_rate": 1.0,
+      "lga_binding_rate": 1.0,
+      "case_binding_rate": 1.0,
+      "deaths_binding_rate": 0.8333,
+      "infra_excluded_count": 0
+    },
+    "wide_table": {
+      "n": 6,
+      "grounding_rate": 1.0,
+      "lga_binding_rate": 1.0,
+      "case_binding_rate": 1.0,
+      "deaths_binding_rate": 0.6667,
+      "infra_excluded_count": 0
+    },
+    "opaque_coded": {
+      "n": 6,
+      "grounding_rate": 1.0,
+      "lga_binding_rate": 1.0,
+      "case_binding_rate": 1.0,
+      "deaths_binding_rate": 0.1667,
+      "infra_excluded_count": 0
+    },
+    "opaque_coded_b": {
+      "n": 6,
+      "grounding_rate": 1.0,
+      "lga_binding_rate": 1.0,
+      "case_binding_rate": 1.0,
+      "deaths_binding_rate": 0.0,
+      "infra_excluded_count": 0
+    },
+    "reduced_schema": {
+      "n": 6,
+      "grounding_rate": 1.0,
+      "lga_binding_rate": 1.0,
+      "case_binding_rate": 1.0,
+      "deaths_binding_rate": null,
+      "infra_excluded_count": 0
+    }
+  },
+  "infra_excluded_count": 0
+}

@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useMemo } from 'react';
 import { MapContainer, TileLayer, GeoJSON, useMap } from 'react-leaflet';
 import HealthFacilitiesLayer from './HealthFacilitiesLayer';
-import TimeSlider from './TimeSlider';
 import type { Layer, PathOptions } from 'leaflet';
 import { renderToString } from 'react-dom/server';
 import type { GeoJSONFeatureCollection, LGAProperties, RiskLevel } from '../../types';
@@ -343,8 +342,6 @@ export default function ChoroplethMap() {
         )}
       </MapContainer>
       
-      <TimeSlider />
-
       {/* Legend */}
       <div
         className="absolute bottom-4 right-4 bg-white p-3 rounded-lg shadow-lg z-[1000]"

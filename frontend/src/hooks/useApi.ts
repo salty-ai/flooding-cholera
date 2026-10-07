@@ -13,6 +13,9 @@ import type {
   WeeklySummary,
   FloodEvent,
   AlertStats,
+  StateChoroplethResponse,
+  StateRecordsResponse,
+  NationalSummaryResponse,
 } from '../types';
 
 const api = axios.create({
@@ -238,6 +241,29 @@ export const apiService = {
     const response = await api.get('/reports/surveillance', { params });
     return response.data;
   },
+
+  // Verified national tier (state-level NCDC situation reports)
+  getStateChoropleth: async (year?: number | null): Promise<StateChoroplethResponse> => {
+    const params = year ? { year } : {};
+    const response = await api.get('/states/choropleth', { params });
+    return response.data;
+  },
+
+  getStateBoundaries: async (): Promise<GeoJSON.FeatureCollection> => {
+    const response = await api.get('/states/boundaries');
+    return response.data;
+  },
+
+  getStateRecords: async (state: string, year?: number | null): Promise<StateRecordsResponse> => {
+    const params = year ? { year } : {};
+    const response = await api.get(`/states/${encodeURIComponent(state)}/records`, { params });
+    return response.data;
+  },
+
+  getNationalSummary: async (): Promise<NationalSummaryResponse> => {
+    const response = await api.get('/states/national-summary');
+    return response.data;
+  },
 };
 
 // React Query Hooks
@@ -314,6 +340,45 @@ export function useCorrelation(params: { lga_id?: number; state?: string; from_y
     queryFn: () => apiService.getCorrelation(params!),
     enabled: !!params,
     staleTime: 60 * 1000,
+  });
+}
+
+/**
+ * Year-end state snapshots for the national choropleth. Pass `null` to let the
+ * API resolve the latest year that has verified data.
+ */
+export function useStateChoropleth(year?: number | null) {
+  return useQuery({
+    queryKey: ['states', 'choropleth', year ?? 'latest'],
+    queryFn: () => apiService.getStateChoropleth(year),
+    staleTime: 30 * 60 * 1000,
+  });
+}
+
+/** Static adm1 geometry — cached aggressively; it only changes on deploy. */
+export function useStateBoundaries() {
+  return useQuery({
+    queryKey: ['states', 'boundaries'],
+    queryFn: apiService.getStateBoundaries,
+    staleTime: Infinity,
+    gcTime: Infinity,
+  });
+}
+
+export function useStateRecords(state: string | null, year?: number | null) {
+  return useQuery({
+    queryKey: ['states', 'records', state, year ?? 'all'],
+    queryFn: () => apiService.getStateRecords(state!, year),
+    enabled: !!state,
+    staleTime: 30 * 60 * 1000,
+  });
+}
+
+export function useNationalSummary() {
+  return useQuery({
+    queryKey: ['states', 'national-summary'],
+    queryFn: apiService.getNationalSummary,
+    staleTime: 30 * 60 * 1000,
   });
 }
 

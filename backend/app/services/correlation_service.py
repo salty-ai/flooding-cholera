@@ -127,7 +127,7 @@ def cross_correlate(
             results.append({
                 "lag": lag,
                 "lag_unit": "months",
-                "pearson_r": 0.0,
+                "pearson_r": None,
                 "p_value": None,
                 "confidence_interval": None,
                 "n": n,
@@ -139,7 +139,7 @@ def cross_correlate(
             results.append({
                 "lag": lag,
                 "lag_unit": "months",
-                "pearson_r": 0.0,
+                "pearson_r": None,
                 "p_value": None,
                 "confidence_interval": None,
                 "n": n,

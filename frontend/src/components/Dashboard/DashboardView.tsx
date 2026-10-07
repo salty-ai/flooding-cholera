@@ -7,6 +7,7 @@ import { FloodEventsRail } from './FloodEventsRail';
 import { CorrelationChart } from './CorrelationChart';
 import { RiskBreakdownChart } from './RiskBreakdownChart';
 import ChoroplethMap from '../Map/ChoroplethMap';
+import { NationalBurdenSection } from '../National/NationalBurdenSection';
 import { ErrorBoundary } from '../common/ErrorBoundary';
 
 export default function DashboardView() {
@@ -23,6 +24,12 @@ export default function DashboardView() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Verified national tier — state-level NCDC data, independent of the
+          LGA-resolution risk model below. */}
+      <ErrorBoundary>
+        <NationalBurdenSection />
+      </ErrorBoundary>
+
       <DateRangeSelector maxDataDate={dashboard?.max_data_date ?? null} />
       <DashboardKpiRow summary={dashboard} />
 
@@ -30,8 +37,11 @@ export default function DashboardView() {
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 xl:min-h-[500px]">
         <div className="xl:col-span-2 flex flex-col rounded-xl overflow-hidden border border-[#e6e8eb] bg-white">
           <div className="p-4 border-b border-[#e6e8eb] flex justify-between items-center bg-white z-10">
-            <h3 className="font-bold text-[#111518] text-sm">Geospatial Risk Map</h3>
-            <div className="flex gap-4 text-xs">
+            <div>
+              <h3 className="font-bold text-[#111518] text-sm">Environmental risk map — LGA heuristic tier</h3>
+              <p className="text-[11px] text-[#637588] mt-0.5">774 LGAs · flood-archive and satellite inputs only · heuristic score, not validated against outbreak data</p>
+            </div>
+            <div className="flex gap-4 text-xs shrink-0">
               <span className="flex items-center gap-1">
                 <span className="size-2 rounded-full bg-red-500"></span> High
               </span>

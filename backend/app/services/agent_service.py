@@ -73,8 +73,12 @@ def provider_status() -> dict[str, bool]:
 
 def _model_name_for_litellm(provider: str, model: str) -> str:
     """Build the model string litellm expects for the given provider."""
-    # If the model already contains a slash it is already fully qualified
-    if "/" in model:
+    # A model that already carries a litellm provider prefix is fully qualified.
+    # NOTE: a bare slash is NOT sufficient — NIM/OpenRouter model ids such as
+    # "nvidia/nemotron-3-super-120b-a12b" or "meta-llama/llama-4-maverick" are
+    # org/model names and still need the provider prefix.
+    _LITELLM_PREFIXES = ("gemini/", "deepseek/", "openrouter/", "nvidia_nim/", "anthropic/")
+    if model.startswith(_LITELLM_PREFIXES):
         return model
 
     # Map UI model ids to models actually available on our Vertex project
@@ -204,13 +208,32 @@ class SurveillanceAgent:
     """Streaming, multi-provider agent for cholera surveillance assistance."""
 
     SYSTEM_INSTRUCTIONS = (
-        "You are the Cholera Environmental Surveillance Copilot. "
-        "You help epidemiologists and health officers analyse disease data for Cross River State, Nigeria.\n"
+        "You are the Cholera Environmental Surveillance Copilot for Nigeria's EO-enabled "
+        "cholera surveillance hub (774 LGAs; Cross River sentinel pilot). "
+        "You help epidemiologists and health officers analyse disease and environmental data.\n"
         "You have three tools available:\n"
-        "  • query_db — run read-only SQL SELECT queries against the LGA and case tables.\n"
+        "  • query_db — run read-only SQL SELECT queries against the surveillance tables.\n"
         "  • analyze_file — perform descriptive analytics (describe, corr, head) on uploaded CSV/Excel files.\n"
         "  • generate_ui_spec — create a custom interactive UI layout (KPIs, charts, maps, tables) to visualize the data in an uploaded CSV or Excel file. Call this tool when a user uploads a file and asks to visualize it or when they want to build an interactive dashboard for their file.\n"
-        "Always explain your reasoning before calling a tool and summarise findings clearly after."
+        "\n"
+        "DATA SEMANTICS — read before writing SQL:\n"
+        "  • state_cholera_records: verified NCDC situation-report extraction, STATE level, 2021-2025. "
+        "Each row is a CUMULATIVE year-to-date count for (state, year, epi_week). NEVER SUM rows across "
+        "weeks — that double-counts. Use monotonic_ok = TRUE rows only.\n"
+        "  • state_cholera_year_end (VIEW): one row per (state, year) = that state's latest analysis-safe "
+        "cumulative snapshot. USE THIS VIEW for any per-state yearly burden or national yearly total "
+        "(SUM(suspected_cases) over the view for a year = dataset-derived national total).\n"
+        "  • The dataset-derived national sum is a LOWER BOUND on the official NCDC year-end figure "
+        "(our parse covers 84/93 reports; last parsed week is often before week 52). The official "
+        "2021 total is 111,062 suspected cases / 3,604 deaths (NCDC SitRep epi-week 52, 2021); "
+        "always label which of the two you are quoting.\n"
+        "  • lgas / risk_scores / flood_events / environmental_data: 774-LGA heuristic risk tier "
+        "(flood archive + satellite inputs). Risk scores are heuristic and not validated against "
+        "outbreak data — say so if asked to interpret them.\n"
+        "  • case_reports is EMPTY by design (the national LGA-month panel was excluded as "
+        "unverifiable). LGA-level case counts exist only for the Cross River 2021 sentinel pilot.\n"
+        "Always explain your reasoning before calling a tool and summarise findings clearly after, "
+        "stating the evidence tier (verified state / sentinel LGA / heuristic) of every number you report."
     )
 
     def __init__(

@@ -124,10 +124,16 @@ export const PROVIDER_OPTIONS: ProviderOption[] = [
     icon: 'memory',
     models: [
       {
-        id: 'nvidia/llama-3.1-nemotron-70b-instruct',
-        label: 'Nemotron 70B',
-        description: 'GPU-optimised instruction model via NVIDIA NIM.',
-        tier: 'balanced',
+        id: 'nvidia/nemotron-3-super-120b-a12b',
+        label: 'Nemotron 3 Super 120B',
+        description: 'Live NIM model used for the published copilot benchmark (72 trials).',
+        tier: 'flagship',
+      },
+      {
+        id: 'deepseek-ai/deepseek-v4-flash-0731',
+        label: 'DeepSeek V4 Flash (via NIM)',
+        description: 'Fast tool-calling model served through NVIDIA NIM.',
+        tier: 'fast',
       },
     ],
   },
@@ -199,8 +205,8 @@ export const useAgentStore = create<AgentState>()((set, get) => ({
   thoughts: [],
   isStreaming: false,
 
-  provider: 'deepseek',
-  model: 'deepseek-v4-flash',
+  provider: 'nvidia_nim',
+  model: 'nvidia/nemotron-3-super-120b-a12b',
 
   providerKeysStatus: DEFAULT_KEYS_STATUS,
   keysStatusLoaded: false,
