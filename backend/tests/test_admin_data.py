@@ -65,6 +65,6 @@ def test_pathbody_validates_optional_path():
 
 def test_admin_routes_in_app_routes():
     """Both admin routes are registered on the app."""
-    paths = {r.path for r in app.routes}
+    paths = set(app.openapi().get("paths", {}))
     assert "/api/admin/data/cholera-import" in paths
     assert "/api/admin/data/groundsource-import" in paths

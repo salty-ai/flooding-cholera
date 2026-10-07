@@ -9,7 +9,6 @@ import LoginScreen from './components/Auth/LoginScreen';
 import MainLayout from './components/Layout/MainLayout';
 
 // Lazy load heavy components
-// Lazy load heavy components
 const ReportsView = lazy(() => import('./components/Dashboard/ReportsView'));
 const AlertsPanel = lazy(() => import('./components/Alerts/AlertsPanel'));
 const SatellitePanel = lazy(() => import('./components/Satellite/SatellitePanel'));
@@ -17,6 +16,7 @@ const DataUpload = lazy(() => import('./components/Upload/DataUpload'));
 const LGAReportPage = lazy(() => import('./components/LGADetail/LGAReportPage'));
 const AgentExplorerView = lazy(() => import('./components/Agent/AgentExplorerView'));
 const CorrelationView = lazy(() => import('./components/Analytics/CorrelationView'));
+const FacilitiesView = lazy(() => import('./components/Facilities/FacilitiesView'));
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -29,7 +29,7 @@ const queryClient = new QueryClient({
   },
 });
 
-export type TabId = 'dashboard' | 'map' | 'reports' | 'alerts' | 'satellite' | 'settings' | 'agent-ui' | 'correlation';
+export type TabId = 'dashboard' | 'map' | 'reports' | 'alerts' | 'satellite' | 'settings' | 'agent-ui' | 'correlation' | 'facilities';
 
 export function LoadingFallback() {
   return (
@@ -51,7 +51,8 @@ function routeToTab(pathname: string): TabId {
   if (pathname === '/satellite') return 'satellite';
   if (pathname === '/settings') return 'settings';
   if (pathname === '/agent-explorer') return 'agent-ui';
-  if (pathname === '/correlation') return 'correlation';
+  if (pathname === '/correlation' || pathname === '/analytics') return 'correlation';
+  if (pathname === '/facilities') return 'facilities';
   return 'dashboard';
 }
 
@@ -110,7 +111,7 @@ function MainAppContent() {
       <Route
         path="*"
         element={
-          <MainLayout activeTab={activeTab} onTabChange={handleTabChange}>
+          <MainLayout activeTab={activeTab as any} onTabChange={(t) => handleTabChange(t as TabId)}>
             <ErrorBoundary>
               <Suspense fallback={<LoadingFallback />}>
                 <Routes>
@@ -122,6 +123,8 @@ function MainAppContent() {
                   <Route path="/settings" element={<DataUpload />} />
                   <Route path="/agent-explorer" element={<AgentExplorerView />} />
                   <Route path="/correlation" element={<CorrelationView />} />
+                  <Route path="/analytics" element={<CorrelationView />} />
+                  <Route path="/facilities" element={<FacilitiesView />} />
                 </Routes>
               </Suspense>
             </ErrorBoundary>

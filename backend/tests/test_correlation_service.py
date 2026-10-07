@@ -15,6 +15,10 @@ def test_cross_correlate_perfect_lag1():
     assert by_lag[1]["pearson_r"] > 0.9
     assert by_lag[1]["n"] >= 6
     assert not by_lag[1]["insufficient_data"]
+    assert by_lag[1]["evidence_status"] == "exploratory"
+    assert by_lag[1]["lag_unit"] == "months"
+    assert "confidence_interval" in by_lag[1]
+    assert by_lag[1]["p_value"] is not None
 
 def test_cross_correlate_insufficient_data():
     flood = {(2024, 1): 1.0, (2024, 2): 0.0}

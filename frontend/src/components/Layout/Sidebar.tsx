@@ -1,6 +1,6 @@
 import { useAppStore } from '../../store/appStore';
 
-export type TabId = 'dashboard' | 'analytics' | 'upload' | 'alerts' | 'satellite' | 'compare';
+export type TabId = 'dashboard' | 'analytics' | 'facilities' | 'alerts' | 'satellite' | 'compare' | 'upload';
 
 interface Tab {
   id: TabId;
@@ -34,6 +34,15 @@ export default function Sidebar({ activeTab, onTabChange, children }: SidebarPro
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+        </svg>
+      )
+    },
+    { 
+      id: 'facilities', 
+      label: 'Facilities',
+      icon: (
+        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-14 0H3m5 0h8M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
       )
     },
@@ -82,7 +91,6 @@ export default function Sidebar({ activeTab, onTabChange, children }: SidebarPro
         sidebarCollapsed ? 'hidden lg:block' : ''
       }`}
     >
-      {/* Tab navigation */}
       <div className="bg-white rounded-lg shadow p-1 overflow-x-auto shrink-0">
         <nav className="flex gap-1 min-w-max" aria-label="Tabs">
           {tabs.map((tab) => (
@@ -99,12 +107,19 @@ export default function Sidebar({ activeTab, onTabChange, children }: SidebarPro
               `}
               aria-current={activeTab === tab.id ? 'page' : undefined}
             >
-              <span className={`transition-opacity ${activeTab === tab.id ? 'opacity-100' : 'opacity-70 group-hover:opacity-100'}`}>
-                {tab.icon}
-              </span>
+              {tab.icon}
               <span>{tab.label}</span>
-              {tab.badge && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 text-[10px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center shadow-sm animate-pulse">
+              {tab.badge !== undefined && tab.badge > 0 && (
+                <span
+                  className={`
+                    ml-1 px-1.5 py-0.5 text-xs font-bold rounded-full
+                    ${
+                      activeTab === tab.id
+                        ? 'bg-white text-blue-600'
+                        : 'bg-blue-100 text-blue-600'
+                    }
+                  `}
+                >
                   {tab.badge}
                 </span>
               )}
@@ -113,15 +128,7 @@ export default function Sidebar({ activeTab, onTabChange, children }: SidebarPro
         </nav>
       </div>
 
-      {/* Tab content */}
-      <div
-        className="flex-1 bg-white/50 rounded-lg overflow-hidden relative"
-        role="tabpanel"
-      >
-        <div className="absolute inset-0 overflow-y-auto custom-scrollbar p-1">
-           {children}
-        </div>
-      </div>
+      <div className="flex-1 overflow-y-auto">{children}</div>
     </div>
   );
 }

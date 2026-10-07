@@ -1,0 +1,75 @@
+{
+  "assets": [
+    {
+      "bytes": 4316410,
+      "exists": true,
+      "path": "data/cholera_real/nigeria_cholera_2020_2025.csv",
+      "sha256": "179f4fb0d774b2b5707bf689b98bf4697c59f30b6daa2aa93dc0c93938159d0a"
+    },
+    {
+      "bytes": 9935489,
+      "exists": true,
+      "path": "data/external_real/fmoh_nigeriahealthfacilities.csv.csv",
+      "sha256": "5d18a31c8a46053c5e7c5ed3d7138393b7ba6f9de9155bbf03c569f862659630"
+    },
+    {
+      "bytes": 25401189,
+      "exists": true,
+      "path": "data/external_real/fmoh_nigeriahealthfacilities.json.json",
+      "sha256": "a190e07a9427089100455e38a4108107c0211949790f8dd7ac92122bf0e6d097"
+    },
+    {
+      "bytes": 667122400,
+      "exists": true,
+      "path": "data/groundsource_2026.parquet",
+      "sha256": "77c266ba5a5176d983edca989a81ff73f21c556fd98c82e2131c2f8d172546ce"
+    },
+    {
+      "bytes": 5845485,
+      "exists": true,
+      "path": "data/boundaries/nigeria_lgas_774.geojson",
+      "sha256": "f7f7150dca85ac2011d8cf290f16fa3250caf04a99af8dfc9ce20a22dea7aa3c"
+    },
+    {
+      "bytes": 1660543,
+      "exists": true,
+      "path": "data/boundaries/nigeria_states.geojson",
+      "sha256": "e6fe01536b567cf94ae381860b4a6cc6f955f498f27f4293ecec1fc3b19c6a70"
+    }
+  ],
+  "claim_status": [
+    {
+      "claim": "46,146 facility records are present in the local FMOH asset",
+      "status": "verified_inventory"
+    },
+    {
+      "claim": "774 national LGA boundary features are present",
+      "status": "verified_inventory"
+    },
+    {
+      "claim": "Pearson correlation is statistically significant",
+      "status": "not_supported_by_this_report"
+    },
+    {
+      "claim": "Flooding provides a validated 30-day prediction window",
+      "status": "not_supported_by_this_report"
+    },
+    {
+      "claim": "Cross River pilot validates the national system",
+      "status": "not_supported; sentinel_only"
+    }
+  ],
+  "evidence_policy": {
+    "causation_claim_supported": false,
+    "correlation": "exploratory association only",
+    "lag_unit": "calendar months",
+    "ncdc_sormas_live_integration_verified": false,
+    "prospective_forecast_validation_present": false
+  },
+  "generated_at_utc": "2026-08-12T02:08:10.347924+00:00",
+  "scope": {
+    "country": "Nigeria",
+    "lgas_boundary_features": 774,
+    "states_including_fct": 37
+  }
+}
