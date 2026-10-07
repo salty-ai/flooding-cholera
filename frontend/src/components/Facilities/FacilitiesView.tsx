@@ -81,14 +81,14 @@ export default function FacilitiesView() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white p-4 sm:p-6 rounded-xl border border-gray-200 shadow-sm">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">FMOH Health Facility Registry</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Health Facility Registry (eHealth Africa)</h1>
           <p className="text-xs sm:text-sm text-gray-500 mt-1">
-            Official Federal Ministry of Health registry covering 46,146 facilities across all 36 states & FCT
+            eHealth Africa master facility list (UN OCHA HDX, 2020) covering 46,146 facilities across all 36 states & FCT
           </p>
         </div>
         <div className="flex items-center gap-2">
           <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-semibold bg-blue-100 text-blue-800">
-            Validated Official Dataset
+            Public Open Dataset
           </span>
         </div>
       </div>
@@ -222,7 +222,7 @@ export default function FacilitiesView() {
         {loading ? (
           <div className="p-8 sm:p-12 text-center text-gray-500 text-xs sm:text-sm">
             <div className="animate-spin rounded-full h-6 w-6 sm:h-8 sm:w-8 border-b-2 border-blue-600 mx-auto mb-2 sm:mb-3"></div>
-            Loading FMOH registry...
+            Loading facility registry...
           </div>
         ) : facilities.length === 0 ? (
           <div className="p-8 sm:p-12 text-center text-gray-500 text-xs sm:text-sm">
