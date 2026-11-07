@@ -1,0 +1,52 @@
+# FastAPI and server
+fastapi>=0.115
+uvicorn[standard]>=0.46
+python-multipart==0.0.9
+
+# Database
+sqlalchemy>=2.0.36
+geoalchemy2>=0.15
+psycopg2-binary>=2.9.10
+alembic>=1.14
+
+# Data processing
+pandas>=2.2.2
+openpyxl==3.1.2
+numpy>=2.1
+shapely>=2.1.0
+geojson==3.1.0
+
+# Satellite data
+earthengine-api==1.7.10
+google-auth==2.47.0
+google-auth-httplib2==0.3.0
+requests==2.31.0
+
+# Scheduling
+apscheduler==3.10.4
+
+# Utilities
+python-dotenv==1.0.1
+pydantic>=2.9
+pydantic-settings>=2.4
+httpx>=0.27
+
+# Rate limiting
+slowapi==0.1.9
+
+# Error tracking
+sentry-sdk[fastapi]>=2.0
+
+# Testing (development only)
+# pytest>=7.0.0,<8.0.0
+# pytest-asyncio==0.23.4
+
+# AI Agentic Surveillance dependencies
+litellm>=1.20.0
+
+# Data export & analysis
+pyarrow>=15.0.0
+geopandas>=0.14.0
+reportlab>=4.0.0
+matplotlib>=3.8.0
+scipy>=1.12.0
